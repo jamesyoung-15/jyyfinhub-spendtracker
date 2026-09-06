@@ -11,6 +11,3 @@ wheels/
 
 # local env
 .env
-
-# data outputs
-data/
