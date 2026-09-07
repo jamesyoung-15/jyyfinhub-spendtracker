@@ -1,0 +1,25 @@
+# keep the build context small and never bake secrets into the image
+.env
+.env.*
+!.env.example
+
+.git
+.gitignore
+.venv
+__pycache__/
+*.py[oc]
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+tests/
+docs/
+compose*.yml
+Taskfile.yml
+.pre-commit-config.yaml
+.python-version
+
+# README.md is kept: pyproject declares it as the project readme, so the build needs it
+*.md
+!README.md
