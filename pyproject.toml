@@ -21,6 +21,7 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "coverage>=7.15.4",
+    "go-task-bin>=3.53.1",
     "httpx>=0.28.1",
     "pre-commit>=4.6.2",
     "pyright>=1.1.411",
@@ -33,6 +34,9 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
+# importlib lets tests/<feature>/test_service.py coexist across features without __init__.py files
+addopts = "--import-mode=importlib -ra --strict-markers --strict-config"
+testpaths = ["tests"]
 
 [tool.ruff]
 exclude = [
