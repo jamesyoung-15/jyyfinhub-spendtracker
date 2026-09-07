@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import make_url
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -12,6 +13,8 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from jyyfinhub_spendtracker.db.registry import Base
+from jyyfinhub_spendtracker.db.session import get_session
+from jyyfinhub_spendtracker.main import create_app
 from jyyfinhub_spendtracker.payment_methods.models import (
     PaymentMethod,
     PaymentMethodKind,
@@ -63,6 +66,23 @@ async def session(engine: AsyncEngine) -> AsyncGenerator[AsyncSession]:
             yield s
         # discards everything the test did, including work the session "committed"
         await trans.rollback()
+
+
+@pytest_asyncio.fixture
+async def client(session: AsyncSession) -> AsyncGenerator[AsyncClient]:
+    """HTTP client wired to the test session.
+
+    Overriding get_session means handler commits land on the savepoint, not the real transaction,
+    so route tests stay isolated. It also means these tests share one connection and cannot catch
+    read-after-write bugs; only an E2E run against real Postgres can.
+    """
+    app = create_app()
+    app.dependency_overrides[get_session] = lambda: session
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as c:
+        yield c
+    app.dependency_overrides.clear()
 
 
 @pytest_asyncio.fixture
