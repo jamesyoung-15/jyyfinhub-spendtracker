@@ -24,8 +24,8 @@ class Settings(BaseSettings):
         default="JYYFinHub Spend Tracker", description="FastAPI app name"
     )
     app_debug: bool = Field(default=False, description="Whether to run in debug mode")
-    app_port: int = Field(default=5000, description="Port to run Flask application")
-    app_host: str = Field(default="127.0.0.1", description="Flask host argument")
+    app_port: int = Field(default=5000, description="Port to run FastAPI application")
+    app_host: str = Field(default="127.0.0.1", description="FastAPI host argument")
 
     # db configs
     postgres_host: str = Field(
