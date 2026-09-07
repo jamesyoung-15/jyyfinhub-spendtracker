@@ -1,0 +1,100 @@
+version: "3"
+
+# loads .env into every task, so no `set -a; source .env` dance
+dotenv: [".env"]
+
+tasks:
+  default:
+    cmd: task --list
+    silent: true
+
+  dev:
+    desc: Bring up the dev db, apply migrations, then serve with reload
+    cmds:
+      - task: up
+      - task: migrate
+      - task: serve
+
+  up:
+    desc: Start the dev db and wait until it is healthy
+    cmd: docker compose up -d --wait
+
+  down:
+    desc: Stop the dev db
+    cmd: docker compose down
+
+  reset:
+    desc: Wipe dev data and start clean
+    cmds:
+      - docker compose down -v
+      - task: up
+      - task: migrate
+
+  serve:
+    desc: Run the app with reload on 127.0.0.1:8000
+    cmd: uv run uvicorn jyyfinhub_spendtracker.main:app --reload
+
+  psql:
+    desc: Open psql against the dev db
+    cmd: docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+
+  migrate:
+    desc: Apply migrations up to head
+    cmd: uv run alembic upgrade head
+
+  revision:
+    desc: 'Autogenerate a migration: task revision -- "initial schema"'
+    cmd: uv run alembic revision --autogenerate -m "{{.CLI_ARGS}}"
+
+  test:
+    desc: 'Run the suite on the throwaway db: task test -- -k categories'
+    cmds:
+      - docker compose -f compose.test.yml up -d --wait
+      - uv run pytest {{.CLI_ARGS}}
+
+  test-down:
+    desc: Stop the throwaway test db
+    cmd: docker compose -f compose.test.yml down
+
+  prod-up:
+    desc: Build and run the full container stack against .env.prod
+    cmd: docker compose -f compose.prod.yml --env-file .env.prod up -d --build --wait
+
+  prod-down:
+    desc: Stop the prod stack (data survives in the volume)
+    cmd: docker compose -f compose.prod.yml --env-file .env.prod down
+
+  prod-logs:
+    desc: Follow prod logs
+    cmd: docker compose -f compose.prod.yml --env-file .env.prod logs -f
+
+  prod-psql:
+    desc: Open psql against the prod db
+    dotenv: [".env.prod"]
+    cmd: docker compose -f compose.prod.yml --env-file .env.prod exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+
+  backup:
+    desc: Dump the prod db to backups/ with a timestamp
+    dotenv: [".env.prod"]
+    cmds:
+      - mkdir -p backups
+      - docker compose -f compose.prod.yml --env-file .env.prod exec -T db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom > "backups/$(date +%Y-%m-%d-%H%M%S).dump"
+
+  cov:
+    desc: Run the suite with a coverage report
+    cmds:
+      - docker compose -f compose.test.yml up -d --wait
+      - uv run pytest --cov=src --cov-report=term-missing
+
+  check:
+    desc: Lint, format check, and typecheck
+    cmds:
+      - uv run ruff check src tests
+      - uv run ruff format --check src tests
+      - uv run pyright
+
+  fix:
+    desc: Autofix lint and formatting
+    cmds:
+      - uv run ruff check --fix src tests
+      - uv run ruff format src tests
