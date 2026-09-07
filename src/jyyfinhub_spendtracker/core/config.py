@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
-    log_level: LogLevel = Field(default="ERROR", description="Numeric log level")
+    app_log_level: LogLevel = Field(default="ERROR", description="Numeric log level")
 
     # fastapi configs
     app_project_name: str = Field(
@@ -32,7 +32,7 @@ class Settings(BaseSettings):
         default="127.0.0.1", description="Postgres server hostname"
     )
     postgres_port: int = Field(default=5432, description="Postgres server port")
-    postgres_username: str = Field(default="postgres", description="Postgres username")
+    postgres_user: str = Field(default="postgres", description="Postgres username")
     postgres_password: SecretStr = Field(..., description="Postgres user password")
     postgres_db: str = Field(default="spendtracker")
 
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         """Generate SQLAlchemy database URL for Postgres from config"""
         return URL.create(
             drivername="postgresql+psycopg",
-            username=self.postgres_username,
+            username=self.postgres_user,
             password=self.postgres_password.get_secret_value(),
             host=self.postgres_host,
             port=self.postgres_port,
