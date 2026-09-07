@@ -380,6 +380,24 @@ wheels = [
 ]
 
 [[package]]
+name = "go-task-bin"
+version = "3.53.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/86/ac/0d1757b707dd6eeaf4e6313971adac2c43286be90dd1b8a58cf32278a654/go_task_bin-3.53.1.tar.gz", hash = "sha256:9ad99fdb03957711d864f95a18ea872bc51a7fafd83dc94d24aaf6ffccdb3efe", size = 758007, upload-time = "2026-08-19T00:46:56.828Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dc/6c/5fce2701ba0a78e380f0aa0e2080ace7bc8816f899259d0a1e335595e279/go_task_bin-3.53.1-py3-none-android_33_arm64_v8a.whl", hash = "sha256:ca46f94443b7ae1a1ab1c26890facab513cc15627b788c034263bca042629357", size = 15526705, upload-time = "2026-08-19T00:46:34.243Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/78/9579cd25323b2675917bb278ce26b76be57c704d4a6d122b51ae34f3ed4c/go_task_bin-3.53.1-py3-none-macosx_12_0_arm64.whl", hash = "sha256:a18ab1c67d563afb12acd764c701832273f06674b893bcf2430ea24e62324b0a", size = 15246445, upload-time = "2026-08-19T00:46:36.566Z" },
+    { url = "https://files.pythonhosted.org/packages/db/28/1274529601b86a366bf2d42c258c1e0b2bc4112f8f9d4c7469583c445f88/go_task_bin-3.53.1-py3-none-macosx_12_0_x86_64.whl", hash = "sha256:2f11015e78b80a635797e21f04c3a5699b768dd2b54c607e4f8b8cd1594e3f09", size = 16486759, upload-time = "2026-08-19T00:46:38.843Z" },
+    { url = "https://files.pythonhosted.org/packages/e5/30/2d9cf26c595272fd9eba06a8332228348819957c99890c2667ac1cd0ed40/go_task_bin-3.53.1-py3-none-manylinux_2_28_aarch64.musllinux_1_2_aarch64.whl", hash = "sha256:de258de300e4249960241089316d3b74f34bfcaf8820c0c54fa4bf0d3b80ce06", size = 14468499, upload-time = "2026-08-19T00:46:41.084Z" },
+    { url = "https://files.pythonhosted.org/packages/18/54/9cfdc88c4ab2011f817b7d456e3da872f58d82b10f31c13650812b309e47/go_task_bin-3.53.1-py3-none-manylinux_2_28_ppc64le.musllinux_1_2_ppc64le.whl", hash = "sha256:974895acba76bf5d5d32f263c876249c0f84262d08faa2b87440f30e01c24f7b", size = 14468698, upload-time = "2026-08-19T00:46:43.406Z" },
+    { url = "https://files.pythonhosted.org/packages/77/ad/5579f4bc2bdfa67d324e9948550cf7efc6d052ad27026d625eebf23edb72/go_task_bin-3.53.1-py3-none-manylinux_2_28_riscv64.musllinux_1_2_riscv64.whl", hash = "sha256:98def794a843e513a53b01bf903b9b997c017c85592461b36f8b95fb3ca97bde", size = 15346070, upload-time = "2026-08-19T00:46:45.661Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/cd/ce88e29c1f3b953452c133ddfb2ced5945f6b9a388fff2262257a2e75119/go_task_bin-3.53.1-py3-none-manylinux_2_28_s390x.musllinux_1_2_s390x.whl", hash = "sha256:378a84992ac1eace2c2a2c0fc8162b555f719f137c7730893c44f4df07c09233", size = 15903859, upload-time = "2026-08-19T00:46:47.749Z" },
+    { url = "https://files.pythonhosted.org/packages/38/f4/dc2f06ae32568c6cdaf60d9e2305ca7a275b26fd0a1b0e4bd8e0365ebf20/go_task_bin-3.53.1-py3-none-manylinux_2_28_x86_64.musllinux_1_2_x86_64.whl", hash = "sha256:7747e540957aaf9f64a1dd20b42b00652df61e404b9602af7956f4ac12583987", size = 16099588, upload-time = "2026-08-19T00:46:49.872Z" },
+    { url = "https://files.pythonhosted.org/packages/69/31/f3f84d4a26b4b12f230b345f03062d40609cd3b12384b87ad84da0b5b07a/go_task_bin-3.53.1-py3-none-win_amd64.whl", hash = "sha256:5f47d972e90ec47d14adccb8189420e259343dbed6d21d724122327b479fd523", size = 16481085, upload-time = "2026-08-19T00:46:52.257Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/71/30d3f1d697b3f2550500b91d17482cf97d720e997dd112662e57cce36259/go_task_bin-3.53.1-py3-none-win_arm64.whl", hash = "sha256:c3c3ba54991500801981c25137b4430bcdbee904202d9dd254fcf98d81e33996", size = 14609454, upload-time = "2026-08-19T00:46:54.582Z" },
+]
+
+[[package]]
 name = "greenlet"
 version = "3.5.5"
 source = { registry = "https://pypi.org/simple" }
@@ -558,6 +576,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "coverage" },
+    { name = "go-task-bin" },
     { name = "httpx" },
     { name = "pre-commit" },
     { name = "pyright" },
@@ -581,6 +600,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "coverage", specifier = ">=7.15.4" },
+    { name = "go-task-bin", specifier = ">=3.53.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pre-commit", specifier = ">=4.6.2" },
     { name = "pyright", specifier = ">=1.1.411" },
