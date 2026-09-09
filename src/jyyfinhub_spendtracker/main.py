@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from jyyfinhub_spendtracker.api import api_router
 from jyyfinhub_spendtracker.core.config import get_settings
 from jyyfinhub_spendtracker.core.exceptions import SpendTrackerError
+from jyyfinhub_spendtracker.core.logging import configure_logging
 
 
 @asynccontextmanager
@@ -28,6 +29,8 @@ async def domain_error_handler(
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_logging(settings)
+
     app = FastAPI(
         debug=settings.app_debug, title=settings.app_project_name, lifespan=lifespan
     )
