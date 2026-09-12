@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Payment methods{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>Payment methods</h1>
+    <a class="button" href="/payment-methods/new">Add</a>
+</div>
+
+{% if payment_methods %}
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Kind</th>
+                <th>Status</th>
+                <th>Expires</th>
+                <th>Notes</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for method in payment_methods %}
+            <tr{% if not method.is_active %} class="muted-row"{% endif %}>
+                <td>{{ method.name }}</td>
+                <td><span class="tag">{{ method.kind.value }}</span></td>
+                <td>
+                    {% if method.is_active %}
+                    <span class="status status-ok">active</span>
+                    {% else %}
+                    <span class="status">retired</span>
+                    {% endif %}
+                </td>
+                <td>{{ method.expires_on.strftime('%b %Y') if method.expires_on else '—' }}</td>
+                <td class="notes">{{ method.notes or '—' }}</td>
+                <td class="row-actions">
+                    <a href="/payment-methods/{{ method.id }}/edit">Edit</a>
+                    <form method="post" action="/payment-methods/{{ method.id }}/delete"
+                          onsubmit="return confirm('Delete {{ method.name }}? Only works if it has no transactions.')">
+                        <button type="submit" class="link-button danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="empty">No payment methods yet. <a href="/payment-methods/new">Add your first one.</a></p>
+{% endif %}
+{% endblock %}

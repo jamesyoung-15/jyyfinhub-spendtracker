@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ status_code }}{% endblock %}
+
+{% block content %}
+<div class="card error-page">
+    <p class="status-code">{{ status_code }}</p>
+    <h1>{{ message }}</h1>
+    <p class="hint">{{ error_code }}</p>
+    <a class="button" href="/payment-methods">Back</a>
+</div>
+{% endblock %}

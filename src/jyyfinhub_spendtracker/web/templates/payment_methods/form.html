@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+    <h1>{{ heading }}</h1>
+    <a class="back" href="/payment-methods">Cancel</a>
+</div>
+
+<form method="post" action="{{ action }}" class="card">
+    <label for="name">Name</label>
+    <input id="name" name="name" maxlength="100" required
+           value="{{ values.get('name') or '' }}">
+    {% if errors.get('name') %}<p class="error">{{ errors['name'] }}</p>{% endif %}
+
+    <label for="kind">Kind</label>
+    <select id="kind" name="kind">
+        {% for kind in kinds %}
+        <option value="{{ kind.value }}" {% if values.get('kind') == kind %}selected{% endif %}>
+            {{ kind.value }}
+        </option>
+        {% endfor %}
+    </select>
+    {% if errors.get('kind') %}<p class="error">{{ errors['kind'] }}</p>{% endif %}
+
+    <label for="expires_on">Expires <span class="hint">optional, any day in the expiry month</span></label>
+    <input id="expires_on" name="expires_on" type="date"
+           value="{{ values.get('expires_on') or '' }}">
+    {% if errors.get('expires_on') %}<p class="error">{{ errors['expires_on'] }}</p>{% endif %}
+
+    <label for="notes">Notes <span class="hint">cashback terms, anything useful</span></label>
+    <textarea id="notes" name="notes" rows="3">{{ values.get('notes') or '' }}</textarea>
+    {% if errors.get('notes') %}<p class="error">{{ errors['notes'] }}</p>{% endif %}
+
+    <label class="checkbox">
+        <input type="checkbox" name="is_active" {% if values.get('is_active') %}checked{% endif %}>
+        Active
+    </label>
+
+    <div class="form-actions">
+        <button type="submit" class="button">Save</button>
+    </div>
+</form>
+{% endblock %}
