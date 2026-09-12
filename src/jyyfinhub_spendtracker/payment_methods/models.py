@@ -27,12 +27,15 @@ class PaymentMethod(Base):
     id: Mapped[int] = mapped_column(sa.BigInteger, sa.Identity(), primary_key=True)
     name: Mapped[str] = mapped_column(sa.String(100), unique=True)
     # VARCHAR + CHECK rather than a native Postgres enum, native enums can gain values but
-    # never drop or reorder them, so retiring one means a create/migrate/drop-type dance
+    # never drop or reorder them, so retiring one means a create/migrate/drop-type dance.
+    # create_constraint=False because alembic autogenerate cannot see an Enum-generated
+    # constraint in the metadata, only the reflected one, so it tries to drop it every run.
+    # Declaring it in __table_args__ puts it somewhere autogenerate can compare.
     kind: Mapped[PaymentMethodKind] = mapped_column(
         sa.Enum(
             PaymentMethodKind,
             native_enum=False,
-            create_constraint=True,
+            create_constraint=False,
             values_callable=lambda e: [m.value for m in e],
         )
     )
@@ -45,3 +48,11 @@ class PaymentMethod(Base):
         sa.DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
     notes: Mapped[str | None] = mapped_column(sa.Text)
+
+    __table_args__ = (
+        # values come from the enum, so the constraint cannot drift from the Python type
+        sa.CheckConstraint(
+            sa.column("kind").in_([kind.value for kind in PaymentMethodKind]),
+            name="kind_valid",
+        ),
+    )
