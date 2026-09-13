@@ -85,6 +85,10 @@ tasks:
       - mkdir -p backups
       - docker compose -f compose.prod.yml --env-file .env.prod exec -T db pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom > "backups/$(date +%Y-%m-%d-%H%M%S).dump"
 
+  restore-check:
+    desc: 'Migrate a restored backup: task restore-check -- backups/some.dump'
+    cmd: bash scripts/restore_check.sh {{.CLI_ARGS}}
+
   cov:
     desc: Run the suite with a coverage report
     cmds:
