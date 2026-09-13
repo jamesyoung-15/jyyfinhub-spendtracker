@@ -1,0 +1,165 @@
+{% extends "base.html" %} {% block title %}Split order{% endblock %} {% block
+content %}
+<div class="page-head">
+  <h1>Split order</h1>
+  <a class="back" href="/transactions/new">Single transaction</a>
+</div>
+
+<form method="post" action="/transactions/split" class="card">
+  <div class="field-row">
+    <div>
+      <label for="txn_date">Date</label>
+      <input
+        id="txn_date"
+        name="txn_date"
+        type="date"
+        required
+        value="{{ values.get('txn_date') or '' }}"
+      />
+      {% if errors.get('txn_date') %}<p class="error">
+        {{ errors['txn_date'] }}
+      </p>{% endif %}
+    </div>
+    <div>
+      <label for="order_total"
+        >Order total <span class="hint">helper only</span></label
+      >
+      <input
+        id="order_total"
+        type="number"
+        step="0.01"
+        min="0.01"
+        inputmode="decimal"
+      />
+    </div>
+  </div>
+
+  <label for="merchant">Merchant</label>
+  <input
+    id="merchant"
+    name="merchant"
+    list="merchants"
+    autocomplete="off"
+    required
+    value="{{ values.get('merchant') or '' }}"
+  />
+  <datalist id="merchants">
+    {% for merchant in merchants %}
+    <option value="{{ merchant }}"></option>
+    {% endfor %}
+  </datalist>
+  {% if errors.get('merchant') %}<p class="error">{{ errors['merchant'] }}</p>{%
+  endif %}
+
+  <label for="payment_method_id">Payment method</label>
+  <select id="payment_method_id" name="payment_method_id" required>
+    <option value="">Select</option>
+    {% for method in payment_methods %}
+    <option value="{{ method.id }}" {% if values.get('payment_method_id')|string
+    == method.id|string %}selected{% endif %}>{{ method.name }}</option>
+    {% endfor %}
+  </select>
+  {% if errors.get('payment_method_id') %}<p class="error">
+    {{ errors['payment_method_id'] }}
+  </p>{% endif %}
+
+  <label class="checkbox">
+    <input type="checkbox" name="is_subscription" {% if
+    values.get('is_subscription') %}checked{% endif %} />
+    Subscription
+  </label>
+
+  <h2 class="section-head">Allocations</h2>
+  <p class="hint">
+    Fill in at least two. The total is whatever these add up to, so nothing is
+    lost to an unallocated remainder.
+  </p>
+  {% if errors.get('allocations') %}<p class="error">
+    {{ errors['allocations'] }}
+  </p>{% endif %}
+
+  {% for row in allocations %}
+  <div class="alloc-row">
+    <select name="category_{{ loop.index0 }}" class="alloc-category">
+      <option value="">Category</option>
+      {% for category in categories %}
+      <option value="{{ category }}" {% if row.get('category') == category
+      %}selected{% endif %}>{{ category }}</option>
+      {% endfor %}
+    </select>
+    <select
+      name="subcategory_{{ loop.index0 }}"
+      class="alloc-subcategory"
+      data-selected="{{ row.get('subcategory') or '' }}"
+    >
+      <option value="">(none)</option>
+    </select>
+    <input
+      name="amount_{{ loop.index0 }}"
+      class="alloc-amount"
+      type="number"
+      step="0.01"
+      min="0.01"
+      inputmode="decimal"
+      placeholder="Amount"
+      value="{{ row.get('amount') or '' }}"
+    />
+    <input
+      name="notes_{{ loop.index0 }}"
+      placeholder="Notes"
+      value="{{ row.get('notes') or '' }}"
+    />
+  </div>
+  {% endfor %}
+
+  <p class="remainder" id="remainder"></p>
+
+  <div class="form-actions">
+    <button type="submit" class="button">Save split</button>
+  </div>
+</form>
+
+<script type="application/json" id="category-map">
+  {{ categories|tojson }}
+</script>
+<script>
+  const map = JSON.parse(document.getElementById("category-map").textContent);
+
+  // each row wires its own pair of selects, since ids cannot be shared across rows
+  for (const row of document.querySelectorAll(".alloc-row")) {
+    const category = row.querySelector(".alloc-category");
+    const subcategory = row.querySelector(".alloc-subcategory");
+    const selected = subcategory.dataset.selected;
+
+    const fill = () => {
+      const options = map[category.value] || [];
+      subcategory.innerHTML = '<option value="">(none)</option>';
+      for (const name of options) {
+        subcategory.add(new Option(name, name, false, name === selected));
+      }
+      subcategory.disabled = options.length === 0;
+    };
+    category.addEventListener("change", fill);
+    fill();
+  }
+
+  // running remainder against the optional order total, purely an entry aid
+  const total = document.getElementById("order_total");
+  const remainder = document.getElementById("remainder");
+  const amounts = [...document.querySelectorAll(".alloc-amount")];
+
+  function showRemainder() {
+    if (!total.value) {
+      remainder.textContent = "";
+      return;
+    }
+    const allocated = amounts.reduce((sum, el) => sum + (Number(el.value) || 0), 0);
+    const left = Math.round((Number(total.value) - allocated) * 100) / 100;
+    remainder.textContent = `Remaining to allocate: $${left.toFixed(2)}`;
+    remainder.className = left === 0 ? "remainder balanced" : "remainder";
+  }
+
+  for (const el of [total, ...amounts]) el.addEventListener("input", showRemainder);
+  showRemainder();
+</script>
+{% endblock %}

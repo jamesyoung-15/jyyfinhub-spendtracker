@@ -98,3 +98,30 @@ class ReimbursementRead(BaseModel):
     status: ReimbursementStatus
     received_date: date | None
     notes: str | None
+
+
+class SplitAllocation(BaseModel):
+    """One category's share of a single purchase."""
+
+    model_config = WRITE_CONFIG
+
+    category: str = Field(min_length=1, max_length=50)
+    subcategory: str | None = Field(default=None, max_length=50)
+    amount_cents: int = Field(gt=0)
+    notes: str | None = Field(default=None)
+
+
+class TransactionSplitCreate(BaseModel):
+    """One purchase recorded as several rows, one per category.
+
+    The order total is not stored: the sum of the allocations is the total by construction.
+    """
+
+    model_config = WRITE_CONFIG
+
+    txn_date: date
+    merchant: str = Field(min_length=1, max_length=200)
+    payment_method_id: int
+    is_subscription: bool = Field(default=False)
+    # fewer than two rows is just a transaction, so it should go through the normal path
+    allocations: list[SplitAllocation] = Field(min_length=2)

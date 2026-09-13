@@ -12,10 +12,12 @@ from jyyfinhub_spendtracker.transactions.schemas import (
     ReimbursementUpdate,
     TransactionCreate,
     TransactionRead,
+    TransactionSplitCreate,
     TransactionUpdate,
 )
 from jyyfinhub_spendtracker.transactions.service import (
     create_reimbursement,
+    create_split,
     create_transaction,
     delete_reimbursement,
     delete_transaction,
@@ -60,6 +62,18 @@ async def add_transaction(session: SessionDep, data: TransactionCreate) -> Trans
     transaction = await create_transaction(session, data)
     await session.commit()
     return transaction
+
+
+@router.post(
+    "/split", response_model=list[TransactionRead], status_code=status.HTTP_201_CREATED
+)
+async def add_split(
+    session: SessionDep, data: TransactionSplitCreate
+) -> Sequence[Transaction]:
+    """One purchase, several category rows, written atomically under a shared order_ref."""
+    rows = await create_split(session, data)
+    await session.commit()
+    return rows
 
 
 @router.get("/{transaction_id}", response_model=TransactionRead)

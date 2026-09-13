@@ -55,6 +55,44 @@ block content %}
   </div>
 </div>
 
+{% if siblings %}
+<h2 class="section-head">Part of one order</h2>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th class="amount">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in siblings %}
+      <tr{% if row.id == txn.id %} class="current-row"{% endif %}>
+        <td>
+          {% if row.id == txn.id %} {{ row.category }}{% if row.subcategory %}
+          <span class="muted">/ {{ row.subcategory }}</span>{% endif %}
+          <span class="tag">this one</span>
+          {% else %}
+          <a href="/transactions/{{ row.id }}"
+            >{{ row.category }}{% if row.subcategory %} / {{ row.subcategory }}{%
+            endif %}</a
+          >
+          {% endif %}
+        </td>
+        <td class="amount">${{ "%.2f"|format(row.amount_cents / 100) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>Order total</td>
+        <td class="amount">${{ "%.2f"|format(order_total_cents / 100) }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endif %}
+
 <h2 class="section-head">Reimbursements</h2>
 
 {% if reimbursements %}

@@ -6,6 +6,7 @@ Services flush but never commit. The caller owns the transaction boundary.
 import logging
 from collections.abc import Sequence
 from datetime import date
+from uuid import uuid4
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,6 +28,7 @@ from jyyfinhub_spendtracker.transactions.schemas import (
     ReimbursementCreate,
     ReimbursementUpdate,
     TransactionCreate,
+    TransactionSplitCreate,
     TransactionUpdate,
 )
 
@@ -276,3 +278,45 @@ async def received_cents_for(session: AsyncSession, transaction_id: int) -> int:
         Reimbursement.status == ReimbursementStatus.RECEIVED,
     )
     return await session.scalar(stmt) or 0
+
+
+def new_order_ref() -> str:
+    """Generated, never typed. Only its sameness across sibling rows matters."""
+    return uuid4().hex[:12]
+
+
+async def create_split(
+    session: AsyncSession, data: TransactionSplitCreate
+) -> Sequence[Transaction]:
+    """Record one purchase as several rows sharing an order_ref.
+
+    Every row is an ordinary transaction that counts toward the budget. There is no parent row,
+    so nothing has to be excluded from a query and no total can be silently lost.
+    """
+    await get_payment_method(session, data.payment_method_id)
+    for allocation in data.allocations:
+        if not is_valid_pair(allocation.category, allocation.subcategory):
+            raise InvalidCategoryPair(allocation.category, allocation.subcategory)
+
+    order_ref = new_order_ref()
+    rows = [
+        Transaction(
+            txn_date=data.txn_date,
+            merchant=data.merchant,
+            payment_method_id=data.payment_method_id,
+            is_subscription=data.is_subscription,
+            order_ref=order_ref,
+            category=allocation.category,
+            subcategory=allocation.subcategory,
+            amount_cents=allocation.amount_cents,
+            notes=allocation.notes,
+        )
+        for allocation in data.allocations
+    ]
+
+    # one flush, so a failure on row three leaves none of them behind
+    session.add_all(rows)
+    await session.flush()
+    for row in rows:
+        await session.refresh(row, ["payment_method", "reimbursements"])
+    return rows

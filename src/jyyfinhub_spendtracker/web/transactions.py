@@ -285,10 +285,19 @@ async def _render_detail(
     status_code: int = 200,
 ) -> HTMLResponse:
     transaction = await get_transaction(session, transaction_id)
+    # siblings share an order_ref, so the original purchase can be reconstructed. there is no
+    # stored order total: the sum of the rows is the total by construction
+    siblings = (
+        await list_transactions(session, order_ref=transaction.order_ref)
+        if transaction.order_ref
+        else []
+    )
     return templates.TemplateResponse(
         request,
         "transactions/detail.html",
         {
+            "siblings": siblings,
+            "order_total_cents": sum(row.amount_cents for row in siblings),
             # get_transaction eager-loads reimbursements, so the model properties work here
             # and no extra queries are needed
             "txn": transaction,

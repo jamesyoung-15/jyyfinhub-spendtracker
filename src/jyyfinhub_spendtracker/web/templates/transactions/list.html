@@ -36,6 +36,7 @@ content %}
         <td>
           <a href="/transactions/{{ txn.id }}">{{ txn.merchant }}</a>
           {% if txn.is_subscription %}<span class="tag">sub</span>{% endif %}
+          {% if txn.order_ref %}<span class="tag">split</span>{% endif %}
         </td>
         <td>
           {{ txn.category }}{% if txn.subcategory %}
