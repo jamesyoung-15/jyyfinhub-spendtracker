@@ -68,7 +68,10 @@ async def get_transaction(session: AsyncSession, transaction_id: int) -> Transac
     stmt = (
         select(Transaction)
         .where(Transaction.id == transaction_id)
-        .options(selectinload(Transaction.payment_method))
+        .options(
+            selectinload(Transaction.payment_method),
+            selectinload(Transaction.reimbursements),
+        )
     )
     transaction = await session.scalar(stmt)
     if transaction is None:
@@ -91,7 +94,11 @@ async def list_transactions(
     """
     stmt = (
         select(Transaction)
-        .options(selectinload(Transaction.payment_method))
+        .options(
+            selectinload(Transaction.payment_method),
+            # one extra query for the whole page, not one per row
+            selectinload(Transaction.reimbursements),
+        )
         .order_by(Transaction.txn_date.desc(), Transaction.id.desc())
     )
 
@@ -122,8 +129,8 @@ async def create_transaction(
     session.add(transaction)
     await session.flush()
 
-    # the relationship is lazy="raise", so load it before anyone reads it
-    await session.refresh(transaction, ["payment_method"])
+    # the relationships are lazy="raise", so load them before anyone reads net_cents
+    await session.refresh(transaction, ["payment_method", "reimbursements"])
     return transaction
 
 
@@ -147,7 +154,7 @@ async def update_transaction(
         setattr(transaction, field, value)
 
     await session.flush()
-    await session.refresh(transaction, ["payment_method"])
+    await session.refresh(transaction, ["payment_method", "reimbursements"])
     return transaction
 
 
@@ -227,8 +234,10 @@ async def create_reimbursement(
     _check_received_has_date(data.status, data.received_date)
     _warn_if_implausible(transaction, data.amount_cents)
 
-    reimbursement = Reimbursement(transaction_id=transaction_id, **data.model_dump())
-    session.add(reimbursement)
+    # append rather than setting transaction_id directly, so the parent's already-loaded
+    # collection stays correct within this session and net_cents does not read stale
+    reimbursement = Reimbursement(**data.model_dump())
+    transaction.reimbursements.append(reimbursement)
     await session.flush()
     return reimbursement
 
