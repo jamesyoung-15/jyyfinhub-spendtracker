@@ -3,7 +3,9 @@
 My own spend tracker application that allows me to manually log individual transactions that rolls
 up into monthly and yearly spend tracked against a budget goal.
 
-![](./images/demo_summary.png)
+| Budget Goal Example | Individual Transactions Example |
+| --- | --- |
+| ![Summary Demo](./images/demo_summary.png) | ![Transactions Demo](./images/demo_transactions.png) |
 
 ## About
 
