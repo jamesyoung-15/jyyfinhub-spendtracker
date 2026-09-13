@@ -34,13 +34,15 @@
                 </td>
                 <td>{{ method.expires_on.strftime('%b %Y') if method.expires_on else '—' }}</td>
                 <td class="notes">{{ method.notes or '—' }}</td>
-                <td class="row-actions">
+                <td>
+          <div class="row-actions">
                     <a href="/payment-methods/{{ method.id }}/edit">Edit</a>
                     <form method="post" action="/payment-methods/{{ method.id }}/delete"
                           onsubmit="return confirm('Delete {{ method.name }}? Only works if it has no transactions.')">
                         <button type="submit" class="link-button danger">Delete</button>
                     </form>
-                </td>
+                </div>
+        </td>
             </tr>
             {% endfor %}
         </tbody>
