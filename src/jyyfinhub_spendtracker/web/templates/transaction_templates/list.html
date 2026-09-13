@@ -1,0 +1,67 @@
+{% extends "base.html" %} {% block title %}Templates{% endblock %} {% block
+content %}
+<div class="page-head">
+  <h1>Templates</h1>
+  <a class="button" href="/transaction-templates/new">Add</a>
+</div>
+
+{% if presets %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Merchant</th>
+        <th>Category</th>
+        <th>Card</th>
+        <th class="amount">Amount</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for preset in presets %}
+      <tr{% if not preset.is_active %} class="muted-row"{% endif %}>
+        <td>{{ preset.name }}</td>
+        <td>{{ preset.merchant }}</td>
+        <td>
+          {{ preset.category }}{% if preset.subcategory %}
+          <span class="muted">/ {{ preset.subcategory }}</span>{% endif %}
+        </td>
+        <td class="muted">{{ preset.payment_method.name }}</td>
+        <td class="amount">
+          {% if preset.amount_cents is not none %} ${{
+          "%.2f"|format(preset.amount_cents / 100) }} {% else %}
+          <span class="muted">varies</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if preset.is_active %}
+          <span class="status status-ok">active</span>
+          {% else %}
+          <span class="status">retired</span>
+          {% endif %}
+        </td>
+        <td>
+          <div class="row-actions">
+            <a href="/transaction-templates/{{ preset.id }}/edit">Edit</a>
+            <form
+              method="post"
+              action="/transaction-templates/{{ preset.id }}/delete"
+              onsubmit="return confirm('Delete {{ preset.name }}? Existing transactions are unaffected.')"
+            >
+              <button type="submit" class="link-button danger">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty">
+  No templates yet.
+  <a href="/transaction-templates/new">Add one</a> to pre-fill the entry form.
+</p>
+{% endif %} {% endblock %}

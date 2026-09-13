@@ -1,0 +1,80 @@
+{% extends "base.html" %} {% block title %}{{ heading }}{% endblock %} {% block
+content %}
+<div class="page-head">
+  <h1>{{ heading }}</h1>
+  <a class="back" href="/transaction-templates">Cancel</a>
+</div>
+
+<form method="post" action="{{ action }}" class="card">
+  <label for="name">Name <span class="hint">shown on the chip</span></label>
+  <input
+    id="name"
+    name="name"
+    maxlength="100"
+    required
+    value="{{ values.get('name') or '' }}"
+  />
+  {% if errors.get('name') %}<p class="error">{{ errors['name'] }}</p>{% endif %}
+
+  <label for="merchant">Merchant</label>
+  <input
+    id="merchant"
+    name="merchant"
+    required
+    value="{{ values.get('merchant') or '' }}"
+  />
+  {% if errors.get('merchant') %}<p class="error">{{ errors['merchant'] }}</p>{%
+  endif %}
+
+  {% include "_category_fields.html" %}
+
+  <label for="amount"
+    >Amount <span class="hint">leave blank if it varies</span></label
+  >
+  <input
+    id="amount"
+    name="amount"
+    type="number"
+    step="0.01"
+    min="0.01"
+    inputmode="decimal"
+    value="{{ values.get('amount') or '' }}"
+  />
+  {% if errors.get('amount_cents') %}<p class="error">
+    {{ errors['amount_cents'] }}
+  </p>{% endif %}
+
+  <label for="payment_method_id">Payment method</label>
+  <select id="payment_method_id" name="payment_method_id" required>
+    <option value="">Select</option>
+    {% for method in payment_methods %}
+    <option value="{{ method.id }}" {% if values.get('payment_method_id')|string
+    == method.id|string %}selected{% endif %}>{{ method.name }}</option>
+    {% endfor %}
+  </select>
+  {% if errors.get('payment_method_id') %}<p class="error">
+    {{ errors['payment_method_id'] }}
+  </p>{% endif %}
+
+  <label for="notes">Notes <span class="hint">optional</span></label>
+  <textarea id="notes" name="notes" rows="2">
+{{ values.get('notes') or '' }}</textarea
+  >
+
+  <label class="checkbox">
+    <input type="checkbox" name="is_subscription" {% if
+    values.get('is_subscription') %}checked{% endif %} />
+    Subscription
+  </label>
+
+  <label class="checkbox">
+    <input type="checkbox" name="is_active" {% if values.get('is_active')
+    %}checked{% endif %} />
+    Active
+  </label>
+
+  <div class="form-actions">
+    <button type="submit" class="button">Save</button>
+  </div>
+</form>
+{% endblock %}

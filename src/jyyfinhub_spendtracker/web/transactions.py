@@ -1,5 +1,6 @@
 """Transaction pages. The entry form is the surface that has to be fast."""
 
+from collections.abc import Sequence
 from datetime import date
 from typing import Any
 
@@ -13,6 +14,11 @@ from jyyfinhub_spendtracker.categories import SPEND_CATEGORIES
 from jyyfinhub_spendtracker.core.exceptions import SpendTrackerError
 from jyyfinhub_spendtracker.deps import SessionDep
 from jyyfinhub_spendtracker.payment_methods.service import list_payment_methods
+from jyyfinhub_spendtracker.transaction_templates.models import TransactionTemplate
+from jyyfinhub_spendtracker.transaction_templates.service import (
+    get_template,
+    list_templates,
+)
 from jyyfinhub_spendtracker.transactions.schemas import (
     TransactionCreate,
     TransactionUpdate,
@@ -62,6 +68,7 @@ async def _render_form(
     errors: dict[str, str],
     action: str,
     heading: str,
+    presets: Sequence[TransactionTemplate] = (),
     status_code: int = 200,
 ) -> HTMLResponse:
     return templates.TemplateResponse(
@@ -75,6 +82,7 @@ async def _render_form(
             "categories": SPEND_CATEGORIES,
             "payment_methods": await list_payment_methods(session, is_active=True),
             "merchants": await recent_merchants(session),
+            "presets": presets,
         },
         status_code=status_code,
     )
@@ -97,18 +105,38 @@ async def transactions_page(
 
 
 @router.get(f"{TRANSACTIONS_URL}/new", response_class=HTMLResponse)
-async def new_transaction_page(request: Request, session: SessionDep) -> HTMLResponse:
+async def new_transaction_page(
+    request: Request, session: SessionDep, template: int | None = None
+) -> HTMLResponse:
+    # smart defaults: today, and whichever card was used last
+    values: dict[str, Any] = {
+        "txn_date": _today().isoformat(),
+        "payment_method_id": await last_used_payment_method_id(session),
+    }
+
+    if template is not None:
+        # a template only fills the form in; nothing is saved until Save is pressed
+        preset = await get_template(session, template)
+        values |= {
+            "merchant": preset.merchant,
+            "category": preset.category,
+            "subcategory": preset.subcategory,
+            "amount": f"{preset.amount_cents / 100:.2f}"
+            if preset.amount_cents is not None
+            else "",
+            "payment_method_id": preset.payment_method_id,
+            "notes": preset.notes,
+            "is_subscription": preset.is_subscription,
+        }
+
     return await _render_form(
         request,
         session,
-        # smart defaults: today, and whichever card was used last
-        values={
-            "txn_date": _today().isoformat(),
-            "payment_method_id": await last_used_payment_method_id(session),
-        },
+        values=values,
         errors={},
         action=TRANSACTIONS_URL,
         heading="Add transaction",
+        presets=await list_templates(session, is_active=True),
     )
 
 

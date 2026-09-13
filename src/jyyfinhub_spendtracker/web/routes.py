@@ -5,6 +5,9 @@ from fastapi.responses import RedirectResponse
 from starlette.status import HTTP_303_SEE_OTHER
 
 from jyyfinhub_spendtracker.web.payment_methods import router as payment_methods_router
+from jyyfinhub_spendtracker.web.transaction_templates import (
+    router as transaction_templates_router,
+)
 from jyyfinhub_spendtracker.web.transactions import router as transactions_router
 
 router = APIRouter(include_in_schema=False)
@@ -16,4 +19,5 @@ async def home() -> RedirectResponse:
 
 
 router.include_router(transactions_router)
+router.include_router(transaction_templates_router)
 router.include_router(payment_methods_router)
