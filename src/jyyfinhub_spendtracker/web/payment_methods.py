@@ -1,8 +1,4 @@
-"""HTML pages. Thin wrappers over the same services the API uses.
-
-HTML forms only support GET and POST, so updates and deletes are POSTs to sub-paths rather than
-PATCH and DELETE.
-"""
+"""Payment method pages."""
 
 from typing import Any
 
@@ -26,9 +22,9 @@ from jyyfinhub_spendtracker.payment_methods.service import (
     list_payment_methods,
     update_payment_method,
 )
+from jyyfinhub_spendtracker.web.forms import checkbox, clean, field_errors
 from jyyfinhub_spendtracker.web.templates import templates
 
-# these render HTML, so they have no place in the OpenAPI schema
 router = APIRouter(include_in_schema=False)
 
 PAYMENT_METHODS_URL = "/payment-methods"
@@ -36,29 +32,10 @@ OPTIONAL_TEXT_FIELDS = ("expires_on", "notes")
 
 
 def _form_values(form: FormData) -> dict[str, Any]:
-    """Turn raw form data into something the Pydantic schemas accept."""
-    data: dict[str, Any] = {
-        key: value.strip() if isinstance(value, str) else value
-        for key, value in form.items()
-    }
-
-    # a blank input posts "" but the schemas want None
-    for field in OPTIONAL_TEXT_FIELDS:
-        if data.get(field) == "":
-            data[field] = None
-
-    # an unchecked checkbox is absent from the payload entirely, so absence means False
-    data["is_active"] = "is_active" in form
+    """Normalise the payment method form."""
+    data = clean(form, optional=OPTIONAL_TEXT_FIELDS)
+    data["is_active"] = checkbox(form, "is_active")
     return data
-
-
-def _field_errors(exc: ValidationError) -> dict[str, str]:
-    """Flatten Pydantic errors to one message per field for display next to the input."""
-    errors: dict[str, str] = {}
-    for error in exc.errors():
-        field = str(error["loc"][0]) if error["loc"] else "_"
-        errors.setdefault(field, error["msg"])
-    return errors
 
 
 def _render_form(
@@ -82,11 +59,6 @@ def _render_form(
         },
         status_code=status_code,
     )
-
-
-@router.get("/")
-async def home() -> RedirectResponse:
-    return RedirectResponse(PAYMENT_METHODS_URL, status_code=HTTP_303_SEE_OTHER)
 
 
 @router.get(PAYMENT_METHODS_URL, response_class=HTMLResponse)
@@ -121,7 +93,7 @@ async def create_payment_method_form(request: Request, session: SessionDep) -> R
         return _render_form(
             request,
             values=values,
-            errors=_field_errors(exc),
+            errors=field_errors(exc),
             action=PAYMENT_METHODS_URL,
             heading="Add payment method",
             status_code=422,
@@ -177,7 +149,7 @@ async def update_payment_method_form(
         return _render_form(
             request,
             values=values,
-            errors=_field_errors(exc),
+            errors=field_errors(exc),
             action=action,
             heading="Edit payment method",
             status_code=422,
