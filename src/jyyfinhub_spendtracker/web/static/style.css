@@ -44,10 +44,34 @@ a:hover {
 .header-inner {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 1.5rem;
   max-width: var(--container);
   margin: 0 auto;
   padding: 0.9rem var(--gutter);
+}
+
+/* offscreen rather than display:none, so the label stays keyboard reachable */
+.nav-toggle {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.nav-button {
+  display: none;
+  margin: 0;
+  cursor: pointer;
+  color: var(--muted);
+}
+.nav-button svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+.icon-close {
+  display: none;
 }
 .brand {
   color: var(--text);
@@ -169,6 +193,10 @@ tbody tr:hover {
   align-items: center;
   white-space: nowrap;
 }
+th,
+td {
+  vertical-align: middle;
+}
 .row-actions form {
   display: inline;
 }
@@ -207,9 +235,7 @@ label + select,
 label + textarea {
   margin-bottom: 1rem;
 }
-input[type="text"],
-input:not([type]),
-input[type="date"],
+input:not([type="checkbox"]):not([type="submit"]),
 select,
 textarea {
   width: 100%;
@@ -262,4 +288,90 @@ textarea {
 }
 .error-page .button {
   margin-top: 1.25rem;
+}
+
+/* transactions */
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+.field-row input,
+.field-row select {
+  margin-bottom: 1rem;
+}
+.month-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.month-picker input {
+  width: auto;
+}
+.button-secondary {
+  background: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.button-secondary:hover {
+  border-color: var(--accent);
+  filter: none;
+}
+.amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--muted);
+}
+tfoot td {
+  border-top: 1px solid var(--border);
+  border-bottom: 0;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+@media (max-width: 520px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.1rem;
+}
+
+@media (max-width: 600px) {
+  .nav-button {
+    display: flex;
+    margin-left: auto;
+  }
+  .nav-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding-top: 0.25rem;
+  }
+  .nav-toggle:checked ~ .nav-links {
+    display: flex;
+  }
+  .nav-toggle:checked ~ .nav-button .icon-open {
+    display: none;
+  }
+  .nav-toggle:checked ~ .nav-button .icon-close {
+    display: block;
+  }
+  .nav-toggle:focus-visible ~ .nav-button {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .month-picker .button {
+    width: 100%;
+  }
 }
