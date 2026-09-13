@@ -63,7 +63,7 @@ async def _render_form(
             "action": action,
             "heading": heading,
             "categories": SPEND_CATEGORIES,
-            "payment_methods": await list_payment_methods(session, is_active=True),
+            "payment_methods": await list_payment_methods(session),
         },
         status_code=status_code,
     )

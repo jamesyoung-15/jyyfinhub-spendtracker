@@ -1,0 +1,24 @@
+{# Payment method select, shared by the transaction, split, and template forms.
+
+   Retired cards stay selectable so historical rows can be entered and edited. They sit in their
+   own optgroup to keep everyday entry looking at active cards first. #}
+{% set active = payment_methods | selectattr('is_active') | list %}
+{% set retired = payment_methods | rejectattr('is_active') | list %}
+<label for="payment_method_id">Payment method</label>
+<select id="payment_method_id" name="payment_method_id" required>
+  <option value="">Select</option>
+  {% for method in active %}
+  <option value="{{ method.id }}" {% if values.get('payment_method_id')|string ==
+  method.id|string %}selected{% endif %}>{{ method.name }}</option>
+  {% endfor %} {% if retired %}
+  <optgroup label="Retired">
+    {% for method in retired %}
+    <option value="{{ method.id }}" {% if values.get('payment_method_id')|string
+    == method.id|string %}selected{% endif %}>{{ method.name }}</option>
+    {% endfor %}
+  </optgroup>
+  {% endif %}
+</select>
+{% if errors.get('payment_method_id') %}<p class="error">
+  {{ errors['payment_method_id'] }}
+</p>{% endif %}

@@ -51,17 +51,7 @@ content %}
   {% if errors.get('merchant') %}<p class="error">{{ errors['merchant'] }}</p>{%
   endif %}
 
-  <label for="payment_method_id">Payment method</label>
-  <select id="payment_method_id" name="payment_method_id" required>
-    <option value="">Select</option>
-    {% for method in payment_methods %}
-    <option value="{{ method.id }}" {% if values.get('payment_method_id')|string
-    == method.id|string %}selected{% endif %}>{{ method.name }}</option>
-    {% endfor %}
-  </select>
-  {% if errors.get('payment_method_id') %}<p class="error">
-    {{ errors['payment_method_id'] }}
-  </p>{% endif %}
+  {% include "_payment_method_field.html" %}
 
   <label class="checkbox">
     <input type="checkbox" name="is_subscription" {% if

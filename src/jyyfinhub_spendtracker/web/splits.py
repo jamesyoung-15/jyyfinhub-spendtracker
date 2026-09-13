@@ -78,7 +78,7 @@ async def _render_split_form(
             "allocations": padded[:SPLIT_ROWS],
             "errors": errors,
             "categories": SPEND_CATEGORIES,
-            "payment_methods": await list_payment_methods(session, is_active=True),
+            "payment_methods": await list_payment_methods(session),
             "merchants": await recent_merchants(session),
         },
         status_code=status_code,
