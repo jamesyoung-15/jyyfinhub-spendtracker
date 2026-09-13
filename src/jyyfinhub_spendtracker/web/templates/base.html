@@ -11,7 +11,14 @@
     <header class="site-header">
       <div class="header-inner">
         <a class="brand" href="/">SpendTracker</a>
-        <nav>
+        <!-- checkbox drives the mobile menu, so no JS is needed -->
+        <input type="checkbox" id="nav-toggle" class="nav-toggle" />
+        <label for="nav-toggle" class="nav-button" aria-label="Toggle menu">
+          <span class="icon-open">{% include "icons/bars.svg" %}</span>
+          <span class="icon-close">{% include "icons/x.svg" %}</span>
+        </label>
+        <nav class="nav-links">
+          <a href="/transactions">Transactions</a>
           <a href="/payment-methods">Payment methods</a>
         </nav>
       </div>
