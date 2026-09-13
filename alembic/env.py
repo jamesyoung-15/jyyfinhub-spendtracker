@@ -26,10 +26,15 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-db_url = (
-    get_settings().database_url.render_as_string(hide_password=False).replace("%", "%%")
-)
-config.set_main_option("sqlalchemy.url", db_url)
+# a caller that already set the url wins, so tests can point at a throwaway database.
+# alembic.ini leaves sqlalchemy.url commented out, so normally this falls through to settings.
+if not config.get_main_option("sqlalchemy.url", None):
+    db_url = (
+        get_settings()
+        .database_url.render_as_string(hide_password=False)
+        .replace("%", "%%")
+    )
+    config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:
