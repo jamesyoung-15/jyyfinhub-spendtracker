@@ -1,0 +1,78 @@
+{% extends "base.html" %} {% block title %}Transactions{% endblock %} {% block
+content %}
+<div class="page-head">
+  <h1>{{ month_label }}</h1>
+  <a class="button" href="/transactions/new">Add</a>
+</div>
+
+<form method="get" action="/transactions" class="month-picker">
+  <input
+    id="month"
+    name="month"
+    type="month"
+    value="{{ month }}"
+    aria-label="Month"
+  />
+  <button type="submit" class="button button-secondary">Go</button>
+</form>
+
+{% if transactions %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Merchant</th>
+        <th>Category</th>
+        <th>Card</th>
+        <th class="amount">Amount</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for txn in transactions %}
+      <tr>
+        <td>{{ txn.txn_date.strftime('%b %d') }}</td>
+        <td>
+          {{ txn.merchant }} {% if txn.is_subscription %}<span class="tag"
+            >sub</span
+          >{% endif %}
+        </td>
+        <td>
+          {{ txn.category }}{% if txn.subcategory %}
+          <span class="muted">/ {{ txn.subcategory }}</span>{% endif %}
+        </td>
+        <td class="muted">{{ txn.payment_method.name }}</td>
+        <td class="amount">${{ "%.2f"|format(txn.amount_cents / 100) }}</td>
+        <td>
+          <div class="row-actions">
+            <a href="/transactions/{{ txn.id }}/edit">Edit</a>
+            <form
+              method="post"
+              action="/transactions/{{ txn.id }}/delete"
+              onsubmit="return confirm('Delete this transaction?')"
+            >
+              <button type="submit" class="link-button danger">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">{{ transactions|length }} transactions</td>
+        <td class="amount">
+          ${{ "%.2f"|format(transactions|sum(attribute='amount_cents') / 100) }}
+        </td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% else %}
+<p class="empty">
+  Nothing logged for {{ month_label }}.
+  <a href="/transactions/new">Add a transaction.</a>
+</p>
+{% endif %} {% endblock %}
