@@ -56,16 +56,21 @@ tasks:
     desc: Stop the throwaway test db
     cmd: docker compose -f compose.test.yml down
 
+  # every prod task needs its own dotenv: the global .env is exported into the task
+  # environment, and a real env var beats --env-file during compose interpolation
   prod-up:
     desc: Build and run the full container stack against .env.prod
+    dotenv: [".env.prod"]
     cmd: docker compose -f compose.prod.yml --env-file .env.prod up -d --build --wait
 
   prod-down:
     desc: Stop the prod stack (data survives in the volume)
+    dotenv: [".env.prod"]
     cmd: docker compose -f compose.prod.yml --env-file .env.prod down
 
   prod-logs:
     desc: Follow prod logs
+    dotenv: [".env.prod"]
     cmd: docker compose -f compose.prod.yml --env-file .env.prod logs -f
 
   prod-psql:
