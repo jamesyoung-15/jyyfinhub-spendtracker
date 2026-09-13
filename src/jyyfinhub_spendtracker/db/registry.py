@@ -8,8 +8,15 @@ Re-exported through __all__ so the imports are genuinely used, not noqa'd side e
 """
 
 from jyyfinhub_spendtracker.db.base import Base
+from jyyfinhub_spendtracker.goals.models import MonthlyBudgetGoal
 from jyyfinhub_spendtracker.payment_methods.models import PaymentMethod
 from jyyfinhub_spendtracker.transaction_templates.models import TransactionTemplate
 from jyyfinhub_spendtracker.transactions.models import Transaction
 
-__all__ = ["Base", "PaymentMethod", "Transaction", "TransactionTemplate"]
+__all__ = [
+    "Base",
+    "MonthlyBudgetGoal",
+    "PaymentMethod",
+    "Transaction",
+    "TransactionTemplate",
+]
