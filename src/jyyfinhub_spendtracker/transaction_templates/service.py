@@ -69,11 +69,13 @@ async def create_template(
     await _validate(session, data.category, data.subcategory, data.payment_method_id)
 
     template = TransactionTemplate(**data.model_dump())
-    session.add(template)
 
     # uq_transaction_templates_name is the only unique constraint on this table
+    # the mutation must happen inside the SAVEPOINT. an object changed outside it belongs to the
+    # outer unit of work, so a failed flush poisons the whole session rather than just the savepoint
     try:
-        await session.flush()
+        async with session.begin_nested():
+            session.add(template)
     except IntegrityError as exc:
         raise TransactionTemplateNameTaken(data.name) from exc
 
@@ -99,11 +101,10 @@ async def update_template(
         changes.get("payment_method_id", template.payment_method_id),
     )
 
-    for field, value in changes.items():
-        setattr(template, field, value)
-
     try:
-        await session.flush()
+        async with session.begin_nested():
+            for field, value in changes.items():
+                setattr(template, field, value)
     except IntegrityError as exc:
         raise TransactionTemplateNameTaken(changes.get("name", template.name)) from exc
 

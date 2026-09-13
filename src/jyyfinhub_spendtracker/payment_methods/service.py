@@ -75,11 +75,13 @@ async def create_payment_method(
 ) -> PaymentMethod:
     """Create a payment method"""
     payment_method = PaymentMethod(**data.model_dump())
-    session.add(payment_method)
 
     # uq_payment_methods_name is the only unique constraint on this table
+    # the mutation must happen inside the SAVEPOINT. an object changed outside it belongs to the
+    # outer unit of work, so a failed flush poisons the whole session rather than just the savepoint
     try:
-        await session.flush()
+        async with session.begin_nested():
+            session.add(payment_method)
     except IntegrityError as exc:
         raise PaymentMethodNameTaken(data.name) from exc
 
@@ -97,11 +99,11 @@ async def update_payment_method(
 
     # exclude_unset distinguishes an omitted field from one explicitly set to null
     changes = data.model_dump(exclude_unset=True)
-    for field, value in changes.items():
-        setattr(payment_method, field, value)
 
     try:
-        await session.flush()
+        async with session.begin_nested():
+            for field, value in changes.items():
+                setattr(payment_method, field, value)
     except IntegrityError as exc:
         raise PaymentMethodNameTaken(changes.get("name", "")) from exc
 
@@ -115,9 +117,9 @@ async def delete_payment_method(session: AsyncSession, payment_id: int) -> None:
     cannot be removed. Retire it with `is_active` instead.
     """
     payment_method = await get_payment_method(session, payment_id)
-    await session.delete(payment_method)
 
     try:
-        await session.flush()
+        async with session.begin_nested():
+            await session.delete(payment_method)
     except IntegrityError as exc:
         raise PaymentMethodInUse(payment_id) from exc
