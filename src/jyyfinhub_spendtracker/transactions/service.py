@@ -10,12 +10,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from jyyfinhub_spendtracker.categories import is_valid_pair
+from jyyfinhub_spendtracker.categories import InvalidCategoryPair, is_valid_pair
 from jyyfinhub_spendtracker.payment_methods.service import get_payment_method
-from jyyfinhub_spendtracker.transactions.exceptions import (
-    InvalidCategoryPair,
-    TransactionNotFound,
-)
+from jyyfinhub_spendtracker.transactions.exceptions import TransactionNotFound
 from jyyfinhub_spendtracker.transactions.models import Transaction
 from jyyfinhub_spendtracker.transactions.schemas import (
     TransactionCreate,

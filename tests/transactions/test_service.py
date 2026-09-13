@@ -3,13 +3,11 @@ from datetime import date
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from jyyfinhub_spendtracker.categories import InvalidCategoryPair
 from jyyfinhub_spendtracker.payment_methods.exceptions import PaymentMethodNotFound
 from jyyfinhub_spendtracker.payment_methods.models import PaymentMethod
 from jyyfinhub_spendtracker.transactions import service
-from jyyfinhub_spendtracker.transactions.exceptions import (
-    InvalidCategoryPair,
-    TransactionNotFound,
-)
+from jyyfinhub_spendtracker.transactions.exceptions import TransactionNotFound
 from jyyfinhub_spendtracker.transactions.schemas import (
     TransactionCreate,
     TransactionUpdate,
