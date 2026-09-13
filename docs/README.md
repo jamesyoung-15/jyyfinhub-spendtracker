@@ -52,3 +52,9 @@ that, which is why entry speed is treated as a hard requirement rather than a ni
 - [Architecture](./architecture.md) - stack, repo layout, package rules, conventions, testing
 - [Schema](./schema.md) - ER diagram and the constraints behind it
 - [Deployment](./deployment.md) - containers, compose, migrations, configuration
+
+## LLM Usage
+
+Initially setup the project and wrote parts of the code manually, but towards the end decided to let LLM go ham to speed-up development and ship working application so I can use day-to-day. Afterall it's a very basic full-stack CRUD application so very easy for LLM to write.
+
+Most of future development will likely be done by LLM as well.
