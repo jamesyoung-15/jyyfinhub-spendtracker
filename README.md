@@ -63,6 +63,7 @@ the compose layout, reverse proxy and backups.
 
 ## Docs
 
+- [Changelog](CHANGELOG.md) - what changed in each release
 - [Overview](docs/README.md) - what it does and the domain decisions behind it
 - [Architecture](docs/architecture.md) - stack, repo layout, package rules, conventions, testing
 - [Schema](docs/schema.md) - ER diagram and the constraints behind it
