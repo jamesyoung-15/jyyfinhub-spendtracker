@@ -84,6 +84,26 @@ erDiagram
 - Deleting a payment method that still has history is blocked by `RESTRICT`, while deleting a
   transaction takes its reimbursements with it through `CASCADE`.
 
+## Budget math
+
+Reimbursements credit the transaction's month rather than the month the money arrived, so past
+months restate when a claim is finally paid. Over-reimbursement floors at zero per transaction.
+
+```txt
+per transaction:
+  received_cents = SUM(reimbursements) WHERE status = 'received'
+  net_txn_cents  = GREATEST(0, amount_cents - received_cents)
+
+per month:
+  gross_spend_cents = SUM(amount_cents)
+  net_spend_cents   = SUM(net_txn_cents)
+  variance_cents    = goal_cents - net_spend_cents
+```
+
+Working `net` out as `gross - reimbursed` over two separate sums gives the wrong answer, because the
+clamp has to happen per transaction before anything is added up. `summaries/service.py` does this in
+SQL with `GREATEST` nested inside `SUM`.
+
 ## Editing it (non-LLM)
 
 When editing the schema by hand, the mermaid block renders on GitHub and in most editors such as

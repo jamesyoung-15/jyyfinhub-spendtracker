@@ -47,6 +47,20 @@ that, which is why entry speed is treated as a hard requirement rather than a ni
 - Monthly goals are the source of truth and the yearly goal is simply their sum.
 - Entry speed is a hard requirement, and everything above serves it.
 
+## Deliberately not doing
+
+Ideas that were considered and dropped, kept here so they do not get re-proposed.
+
+- `posted_date`, which is only useful for reconciling against a statement.
+- `description`, since `notes` already covers it.
+- `include_in_budget`, which mixed a user toggle up with a structural fact and had no real use case.
+- `split_role` and `parent_transaction_id`. The parent row held a total that was derivable from its
+  children, had no valid category of its own, and needed excluding from every single query.
+- `subscription_monthly_cents`. I enter the monthly share as the amount, so no separate amortisation
+  figure is needed.
+- A `subscriptions` table, given that templates already cover it and more.
+- Per-category budgets. One monthly number is enough to change behaviour.
+
 ## Main Docs
 
 - [Architecture](./architecture.md) - stack, repo layout, package rules, conventions, testing

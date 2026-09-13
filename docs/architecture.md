@@ -85,6 +85,20 @@ Tables and relationships are in [Schema](./schema.md).
   generated for it, so `create_constraint=True` produces a diff that comes back on every
   autogenerate run.
 
+### Gotchas worth remembering
+
+These all cost real debugging time.
+
+- A failed flush poisons the whole session, which leaves the caller unable to re-render a form. Wrap
+  any mutation that might trip a constraint in `async with session.begin_nested()`, and make sure
+  the `add`, `setattr` or `delete` happens inside that block rather than before it.
+- Append to a relationship rather than setting the foreign key when the parent might already be
+  loaded. Setting `transaction_id` directly leaves the parent's collection stale for the rest of the
+  session, and the identity map then hands that stale object to the next query.
+- A form normaliser that always writes a key defeats `exclude_unset`. A partial form has to omit the
+  fields it did not carry, otherwise an absent field arrives as an explicit null and wipes whatever
+  was stored.
+
 ## Migrations
 
 - `db/registry.py` imports and re-exports every model class in `__all__`, and `alembic/env.py`
