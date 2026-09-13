@@ -6,7 +6,7 @@ Services flush but never commit. The caller owns the transaction boundary.
 from collections.abc import Sequence
 from datetime import date
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -146,3 +146,22 @@ async def delete_transaction(session: AsyncSession, transaction_id: int) -> None
     transaction = await get_transaction(session, transaction_id)
     await session.delete(transaction)
     await session.flush()
+
+
+async def recent_merchants(session: AsyncSession, limit: int = 50) -> Sequence[str]:
+    """Distinct merchants, most recently used first, for the entry form datalist."""
+    stmt = (
+        select(Transaction.merchant)
+        .group_by(Transaction.merchant)
+        .order_by(func.max(Transaction.txn_date).desc())
+        .limit(limit)
+    )
+    return (await session.scalars(stmt)).all()
+
+
+async def last_used_payment_method_id(session: AsyncSession) -> int | None:
+    """Default for the entry form, since the same card is usually used repeatedly."""
+    stmt = (
+        select(Transaction.payment_method_id).order_by(Transaction.id.desc()).limit(1)
+    )
+    return await session.scalar(stmt)
