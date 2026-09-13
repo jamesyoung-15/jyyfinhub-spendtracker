@@ -455,3 +455,11 @@ tfoot td {
   padding: 0.3rem 0.5rem;
   font-size: 0.85rem;
 }
+
+/* gross shown only when reimbursement changed it */
+.struck {
+  color: var(--muted);
+  text-decoration: line-through;
+  font-size: 0.85em;
+  margin-right: 0.35rem;
+}

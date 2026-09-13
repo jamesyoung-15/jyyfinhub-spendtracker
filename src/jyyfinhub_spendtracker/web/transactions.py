@@ -37,9 +37,7 @@ from jyyfinhub_spendtracker.transactions.service import (
     get_reimbursement,
     get_transaction,
     last_used_payment_method_id,
-    list_reimbursements,
     list_transactions,
-    received_cents_for,
     recent_merchants,
     update_reimbursement,
     update_transaction,
@@ -287,16 +285,16 @@ async def _render_detail(
     status_code: int = 200,
 ) -> HTMLResponse:
     transaction = await get_transaction(session, transaction_id)
-    received = await received_cents_for(session, transaction_id)
     return templates.TemplateResponse(
         request,
         "transactions/detail.html",
         {
+            # get_transaction eager-loads reimbursements, so the model properties work here
+            # and no extra queries are needed
             "txn": transaction,
-            "reimbursements": await list_reimbursements(session, transaction_id),
-            "received_cents": received,
-            # the same clamp the summary applies, shown per transaction
-            "net_cents": max(0, transaction.amount_cents - received),
+            "reimbursements": transaction.reimbursements,
+            "received_cents": transaction.received_cents,
+            "net_cents": transaction.net_cents,
             "sources": list(ReimbursementSource),
             "statuses": list(ReimbursementStatus),
             "values": values or {},

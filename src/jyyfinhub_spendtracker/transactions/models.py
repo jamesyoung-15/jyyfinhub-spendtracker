@@ -75,8 +75,26 @@ class Transaction(Base):
         back_populates="transaction",
         cascade="all, delete-orphan",
         passive_deletes=True,
+        order_by="Reimbursement.id",
         lazy="raise",
     )
+
+    @property
+    def received_cents(self) -> int:
+        """Total actually received. Needs reimbursements loaded, or lazy="raise" says so."""
+        return sum(
+            item.amount_cents
+            for item in self.reimbursements
+            if item.status is ReimbursementStatus.RECEIVED
+        )
+
+    @property
+    def net_cents(self) -> int:
+        """What this transaction cost after reimbursement.
+
+        Floors at zero: being over-reimbursed is not income, same rule the summaries use.
+        """
+        return max(0, self.amount_cents - self.received_cents)
 
     __table_args__ = (
         sa.CheckConstraint("amount_cents > 0", name="amount_positive"),

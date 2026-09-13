@@ -172,3 +172,41 @@ async def test_delete_reimbursement_leaves_transaction(
 
     assert await service.list_reimbursements(session, txn.id) == []
     assert await service.get_transaction(session, txn.id) is not None
+
+
+async def test_net_properties_need_no_extra_query(
+    session: AsyncSession, payment_method: PaymentMethod
+) -> None:
+    """list_transactions eager-loads reimbursements, so net_cents works without N+1"""
+    txn = await _transaction(session, payment_method, amount_cents=40000)
+    await service.create_reimbursement(
+        session,
+        txn.id,
+        _claim(
+            amount_cents=15000,
+            status=ReimbursementStatus.RECEIVED,
+            received_date=date(2026, 10, 1),
+        ),
+    )
+
+    listed = await service.list_transactions(session)
+    assert [(t.received_cents, t.net_cents) for t in listed] == [(15000, 25000)]
+
+
+async def test_net_floors_at_zero_on_the_model(
+    session: AsyncSession, payment_method: PaymentMethod
+) -> None:
+    txn = await _transaction(session, payment_method, amount_cents=10000)
+    await service.create_reimbursement(
+        session,
+        txn.id,
+        _claim(
+            amount_cents=12000,
+            status=ReimbursementStatus.RECEIVED,
+            received_date=date(2026, 10, 1),
+        ),
+    )
+
+    refreshed = await service.get_transaction(session, txn.id)
+    assert refreshed.received_cents == 12000
+    assert refreshed.net_cents == 0

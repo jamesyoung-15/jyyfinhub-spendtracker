@@ -133,3 +133,27 @@ async def test_missing_transaction_renders_html_404(client: AsyncClient) -> None
     response = await client.get(f"{PAGE}/9999")
     assert response.status_code == 404
     assert "<html" in response.text
+
+
+async def test_list_shows_net_with_gross_struck_through(
+    client: AsyncClient, session: AsyncSession, payment_method: PaymentMethod
+) -> None:
+    txn_id = await _transaction_id(client, session, payment_method)
+    await client.post(
+        f"{PAGE}/{txn_id}/reimbursements",
+        data=_form(amount="150.00", status="received", received_date="2026-10-01"),
+    )
+
+    listing = await client.get(PAGE, params={"month": "2026-09"})
+    assert 'class="struck">$400.00' in listing.text
+    assert "$250.00" in listing.text
+
+
+async def test_list_shows_one_figure_when_not_reimbursed(
+    client: AsyncClient, session: AsyncSession, payment_method: PaymentMethod
+) -> None:
+    """98% of rows have net == gross, so no strikethrough clutter"""
+    await _transaction_id(client, session, payment_method)
+    listing = await client.get(PAGE, params={"month": "2026-09"})
+    assert 'class="struck"' not in listing.text
+    assert "$400.00" in listing.text

@@ -25,7 +25,7 @@ content %}
         <th>Merchant</th>
         <th>Category</th>
         <th>Card</th>
-        <th class="amount">Amount</th>
+        <th class="amount">Net</th>
         <th></th>
       </tr>
     </thead>
@@ -42,7 +42,11 @@ content %}
           <span class="muted">/ {{ txn.subcategory }}</span>{% endif %}
         </td>
         <td class="muted">{{ txn.payment_method.name }}</td>
-        <td class="amount">${{ "%.2f"|format(txn.amount_cents / 100) }}</td>
+        <td class="amount">
+          {% if txn.net_cents != txn.amount_cents %}
+          <span class="struck">${{ "%.2f"|format(txn.amount_cents / 100) }}</span>
+          {% endif %} ${{ "%.2f"|format(txn.net_cents / 100) }}
+        </td>
         <td>
           <div class="row-actions">
             <a href="/transactions/{{ txn.id }}/edit">Edit</a>
@@ -59,10 +63,14 @@ content %}
       {% endfor %}
     </tbody>
     <tfoot>
+      {% set gross = transactions|sum(attribute='amount_cents') %} {% set net =
+      transactions|sum(attribute='net_cents') %}
       <tr>
         <td colspan="4">{{ transactions|length }} transactions</td>
         <td class="amount">
-          ${{ "%.2f"|format(transactions|sum(attribute='amount_cents') / 100) }}
+          {% if net != gross %}
+          <span class="struck">${{ "%.2f"|format(gross / 100) }}</span>
+          {% endif %} ${{ "%.2f"|format(net / 100) }}
         </td>
         <td></td>
       </tr>
