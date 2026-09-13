@@ -5,6 +5,7 @@ EXPECTED_TABLES = {
     "transactions",
     "transaction_templates",
     "monthly_budget_goals",
+    "reimbursements",
 }
 
 
