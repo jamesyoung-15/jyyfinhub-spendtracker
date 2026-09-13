@@ -157,6 +157,9 @@ h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
 }
+.months-table {
+  margin-top: 2rem;
+}
 table {
   width: 100%;
   border-collapse: collapse;
@@ -224,6 +227,10 @@ td {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.25rem;
+}
+.card-title {
+  font-size: 1rem;
+  font-weight: 500;
 }
 label {
   display: block;
@@ -407,7 +414,7 @@ tfoot td {
 
 /* transaction detail */
 .section-head {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 600;
   margin: 2rem 0 0.75rem;
 }
@@ -462,4 +469,15 @@ tfoot td {
   text-decoration: line-through;
   font-size: 0.85em;
   margin-right: 0.35rem;
+}
+
+/* summary */
+.under {
+  color: var(--ok);
+}
+.over {
+  color: var(--danger);
+}
+.current-row {
+  background: var(--surface);
 }
