@@ -2,6 +2,11 @@ from datetime import date
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from jyyfinhub_spendtracker.transactions.models import (
+    ReimbursementSource,
+    ReimbursementStatus,
+)
+
 # forbid extra so a typo'd field is a 422 instead of silently ignored
 WRITE_CONFIG = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
@@ -55,3 +60,41 @@ class TransactionRead(BaseModel):
     notes: str | None
     is_subscription: bool
     order_ref: str | None
+
+
+class ReimbursementCreate(BaseModel):
+    """Schema for recording money coming back against a transaction."""
+
+    model_config = WRITE_CONFIG
+
+    source: ReimbursementSource
+    amount_cents: int = Field(gt=0)
+    status: ReimbursementStatus = Field(default=ReimbursementStatus.EXPECTED)
+    received_date: date | None = Field(default=None)
+    notes: str | None = Field(default=None)
+
+
+class ReimbursementUpdate(BaseModel):
+    """Every field optional. Services use exclude_unset, so an omitted field is left alone."""
+
+    model_config = WRITE_CONFIG
+
+    source: ReimbursementSource | None = Field(default=None)
+    amount_cents: int | None = Field(default=None, gt=0)
+    status: ReimbursementStatus | None = Field(default=None)
+    received_date: date | None = Field(default=None)
+    notes: str | None = Field(default=None)
+
+
+class ReimbursementRead(BaseModel):
+    """Schema for reading a reimbursement."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    transaction_id: int
+    source: ReimbursementSource
+    amount_cents: int
+    status: ReimbursementStatus
+    received_date: date | None
+    notes: str | None
