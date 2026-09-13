@@ -2,6 +2,7 @@
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from importlib.metadata import version
 
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse
@@ -48,7 +49,11 @@ def create_app() -> FastAPI:
     configure_logging(settings)
 
     app = FastAPI(
-        debug=settings.app_debug, title=settings.app_project_name, lifespan=lifespan
+        debug=settings.app_debug,
+        title=settings.app_project_name,
+        # read from installed package metadata, so pyproject.toml stays the only place to bump
+        version=version("jyyfinhub-spendtracker"),
+        lifespan=lifespan,
     )
 
     app.add_exception_handler(SpendTrackerError, domain_error_handler)  # type: ignore[arg-type]
