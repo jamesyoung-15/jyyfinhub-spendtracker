@@ -1,0 +1,48 @@
+{# Category and subcategory selects, shared by the transaction and template forms. #}
+<div class="field-row">
+  <div>
+    <label for="category">Category</label>
+    <select id="category" name="category" required>
+      <option value="">Select</option>
+      {% for category in categories %}
+      <option value="{{ category }}" {% if values.get('category') == category
+      %}selected{% endif %}>{{ category }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="subcategory">Subcategory</label>
+    <select id="subcategory" name="subcategory">
+      <option value="">(none)</option>
+    </select>
+  </div>
+</div>
+{% if errors.get('category') %}<p class="error">{{ errors['category'] }}</p>{%
+endif %} {% if errors.get('subcategory') %}<p class="error">
+  {{ errors['subcategory'] }}
+</p>{% endif %}
+
+<script type="application/json" id="category-map">
+  {{ categories|tojson }}
+</script>
+<script>
+  // fills the subcategory select from the chosen category. without JS the select stays
+  // empty and the service still rejects an invalid pair
+  const map = JSON.parse(document.getElementById("category-map").textContent);
+  const category = document.getElementById("category");
+  const subcategory = document.getElementById("subcategory");
+  const selected = {{ (values.get('subcategory') or '')|tojson }};
+
+  function fillSubcategories() {
+    const options = map[category.value] || [];
+    subcategory.innerHTML = '<option value="">(none)</option>';
+    for (const name of options) {
+      const option = new Option(name, name, false, name === selected);
+      subcategory.add(option);
+    }
+    subcategory.disabled = options.length === 0;
+  }
+
+  category.addEventListener("change", fillSubcategories);
+  fillSubcategories();
+</script>

@@ -5,6 +5,16 @@ content %}
   <a class="back" href="/transactions">Cancel</a>
 </div>
 
+{% if presets %}
+<div class="chips">
+  {% for preset in presets %}
+  <a class="chip" href="/transactions/new?template={{ preset.id }}"
+    >{{ preset.name }}</a
+  >
+  {% endfor %}
+</div>
+{% endif %}
+
 <form method="post" action="{{ action }}" class="card">
   <div class="field-row">
     <div>
@@ -54,28 +64,7 @@ content %}
   {% if errors.get('merchant') %}<p class="error">{{ errors['merchant'] }}</p>{%
   endif %}
 
-  <div class="field-row">
-    <div>
-      <label for="category">Category</label>
-      <select id="category" name="category" required>
-        <option value="">Select</option>
-        {% for category in categories %}
-        <option value="{{ category }}" {% if values.get('category') == category
-        %}selected{% endif %}>{{ category }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <label for="subcategory">Subcategory</label>
-      <select id="subcategory" name="subcategory">
-        <option value="">None</option>
-      </select>
-    </div>
-  </div>
-  {% if errors.get('category') %}<p class="error">{{ errors['category'] }}</p>{%
-  endif %} {% if errors.get('subcategory') %}<p class="error">
-    {{ errors['subcategory'] }}
-  </p>{% endif %}
+  {% include "_category_fields.html" %}
 
   <label for="payment_method_id">Payment method</label>
   <select id="payment_method_id" name="payment_method_id" required>
@@ -105,28 +94,4 @@ content %}
   </div>
 </form>
 
-<script type="application/json" id="category-map">
-  {{ categories|tojson }}
-</script>
-<script>
-  // fills the subcategory select from the chosen category. without JS the select stays
-  // empty and the service still rejects an invalid pair
-  const map = JSON.parse(document.getElementById("category-map").textContent);
-  const category = document.getElementById("category");
-  const subcategory = document.getElementById("subcategory");
-  const selected = {{ (values.get('subcategory') or '')|tojson }};
-
-  function fillSubcategories() {
-    const options = map[category.value] || [];
-    subcategory.innerHTML = '<option value="">None</option>';
-    for (const name of options) {
-      const option = new Option(name, name, false, name === selected);
-      subcategory.add(option);
-    }
-    subcategory.disabled = options.length === 0;
-  }
-
-  category.addEventListener("change", fillSubcategories);
-  fillSubcategories();
-</script>
 {% endblock %}
