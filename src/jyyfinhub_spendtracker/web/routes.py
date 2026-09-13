@@ -1,12 +1,13 @@
 """Aggregate every HTML page router."""
 
 from fastapi import APIRouter
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from starlette.status import HTTP_303_SEE_OTHER
 
 from jyyfinhub_spendtracker.web.payment_methods import router as payment_methods_router
 from jyyfinhub_spendtracker.web.splits import router as splits_router
 from jyyfinhub_spendtracker.web.summaries import router as summaries_router
+from jyyfinhub_spendtracker.web.templates import STATIC_DIR
 from jyyfinhub_spendtracker.web.transaction_templates import (
     router as transaction_templates_router,
 )
@@ -18,6 +19,12 @@ router = APIRouter(include_in_schema=False)
 @router.get("/")
 async def home() -> RedirectResponse:
     return RedirectResponse("/transactions", status_code=HTTP_303_SEE_OTHER)
+
+
+@router.get("/favicon.ico")
+async def favicon() -> FileResponse:
+    """Browsers probe the root path regardless of the link tags, and /docs has none."""
+    return FileResponse(STATIC_DIR / "favicon" / "favicon.ico")
 
 
 router.include_router(summaries_router)

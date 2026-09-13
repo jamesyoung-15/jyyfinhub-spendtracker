@@ -4,13 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0f0f11" />
     <title>{% block title %}JYYFinHub SpendTracker{% endblock %}</title>
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="{{ url_for('static', path='/favicon/favicon-32x32.png') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{{ url_for('static', path='/favicon/favicon-16x16.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ url_for('static', path='/favicon/apple-touch-icon.png') }}"
+    />
+    <link rel="manifest" href="{{ url_for('static', path='/favicon/site.webmanifest') }}" />
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}" />
   </head>
   <body>
     <header class="site-header">
       <div class="header-inner">
-        <a class="brand" href="/">SpendTracker</a>
+        <a class="brand" href="/">
+          {% include "icons/checkbook.svg" %}
+          <span>SpendTracker</span>
+        </a>
         <!-- checkbox drives the mobile menu, so no JS is needed -->
         <input type="checkbox" id="nav-toggle" class="nav-toggle" />
         <label for="nav-toggle" class="nav-button" aria-label="Toggle menu">

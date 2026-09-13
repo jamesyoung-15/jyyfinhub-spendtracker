@@ -74,9 +74,18 @@ a:hover {
   display: none;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   color: var(--text);
   font-weight: 600;
   letter-spacing: -0.01em;
+}
+/* stroked icon, so it needs its own rule rather than the filled .nav-button one */
+.brand svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 .site-header nav a {
   color: var(--muted);
