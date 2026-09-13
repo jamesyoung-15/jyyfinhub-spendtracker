@@ -68,7 +68,7 @@ content %}
     <div>
       <label for="subcategory">Subcategory</label>
       <select id="subcategory" name="subcategory">
-        <option value="">(none)</option>
+        <option value="">None</option>
       </select>
     </div>
   </div>
@@ -118,7 +118,7 @@ content %}
 
   function fillSubcategories() {
     const options = map[category.value] || [];
-    subcategory.innerHTML = '<option value="">(none)</option>';
+    subcategory.innerHTML = '<option value="">None</option>';
     for (const name of options) {
       const option = new Option(name, name, false, name === selected);
       subcategory.add(option);
