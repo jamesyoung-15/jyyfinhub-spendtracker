@@ -34,9 +34,8 @@ content %}
       <tr>
         <td>{{ txn.txn_date.strftime('%b %d') }}</td>
         <td>
-          {{ txn.merchant }} {% if txn.is_subscription %}<span class="tag"
-            >sub</span
-          >{% endif %}
+          <a href="/transactions/{{ txn.id }}">{{ txn.merchant }}</a>
+          {% if txn.is_subscription %}<span class="tag">sub</span>{% endif %}
         </td>
         <td>
           {{ txn.category }}{% if txn.subcategory %}

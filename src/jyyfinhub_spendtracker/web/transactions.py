@@ -19,17 +19,29 @@ from jyyfinhub_spendtracker.transaction_templates.service import (
     get_template,
     list_templates,
 )
+from jyyfinhub_spendtracker.transactions.models import (
+    ReimbursementSource,
+    ReimbursementStatus,
+)
 from jyyfinhub_spendtracker.transactions.schemas import (
+    ReimbursementCreate,
+    ReimbursementUpdate,
     TransactionCreate,
     TransactionUpdate,
 )
 from jyyfinhub_spendtracker.transactions.service import (
+    create_reimbursement,
     create_transaction,
+    delete_reimbursement,
     delete_transaction,
+    get_reimbursement,
     get_transaction,
     last_used_payment_method_id,
+    list_reimbursements,
     list_transactions,
+    received_cents_for,
     recent_merchants,
+    update_reimbursement,
     update_transaction,
 )
 from jyyfinhub_spendtracker.web.forms import checkbox, clean, field_errors, parse_amount
@@ -244,3 +256,144 @@ async def delete_transaction_form(
     await delete_transaction(session, transaction_id)
     await session.commit()
     return RedirectResponse(TRANSACTIONS_URL, status_code=HTTP_303_SEE_OTHER)
+
+
+# reimbursements live on the transaction detail page: rare enough (~1/month) that they should
+# not crowd the entry or list pages, and the detail page is where split siblings will go too
+REIMBURSEMENTS_URL = "/reimbursements"
+REIMBURSEMENT_OPTIONAL_FIELDS = ("received_date", "notes")
+
+
+def _reimbursement_values(form: FormData) -> dict[str, Any]:
+    """Normalise a reimbursement form, which may be partial.
+
+    Only touch amount_cents when the form actually carried an amount. Always writing the key
+    would make exclude_unset treat it as an explicit null, so the inline "mark received" form
+    would wipe the stored amount.
+    """
+    data = clean(form, optional=REIMBURSEMENT_OPTIONAL_FIELDS)
+    if "amount" in data:
+        data["amount_cents"] = parse_amount(data.pop("amount"))
+    return data
+
+
+async def _render_detail(
+    request: Request,
+    session: SessionDep,
+    transaction_id: int,
+    *,
+    errors: dict[str, str] | None = None,
+    values: dict[str, Any] | None = None,
+    status_code: int = 200,
+) -> HTMLResponse:
+    transaction = await get_transaction(session, transaction_id)
+    received = await received_cents_for(session, transaction_id)
+    return templates.TemplateResponse(
+        request,
+        "transactions/detail.html",
+        {
+            "txn": transaction,
+            "reimbursements": await list_reimbursements(session, transaction_id),
+            "received_cents": received,
+            # the same clamp the summary applies, shown per transaction
+            "net_cents": max(0, transaction.amount_cents - received),
+            "sources": list(ReimbursementSource),
+            "statuses": list(ReimbursementStatus),
+            "values": values or {},
+            "errors": errors or {},
+        },
+        status_code=status_code,
+    )
+
+
+@router.get(TRANSACTIONS_URL + "/{transaction_id}", response_class=HTMLResponse)
+async def transaction_detail_page(
+    request: Request, session: SessionDep, transaction_id: int
+) -> HTMLResponse:
+    return await _render_detail(request, session, transaction_id)
+
+
+@router.post(TRANSACTIONS_URL + "/{transaction_id}/reimbursements")
+async def add_reimbursement_form(
+    request: Request, session: SessionDep, transaction_id: int
+) -> Response:
+    values = _reimbursement_values(await request.form())
+
+    try:
+        payload = ReimbursementCreate(**values)
+    except ValidationError as exc:
+        return await _render_detail(
+            request,
+            session,
+            transaction_id,
+            errors=field_errors(exc),
+            values=values,
+            status_code=422,
+        )
+
+    try:
+        await create_reimbursement(session, transaction_id, payload)
+    except SpendTrackerError as exc:
+        return await _render_detail(
+            request,
+            session,
+            transaction_id,
+            errors={"status": exc.message},
+            values=values,
+            status_code=exc.status_code,
+        )
+
+    await session.commit()
+    return RedirectResponse(
+        f"{TRANSACTIONS_URL}/{transaction_id}", status_code=HTTP_303_SEE_OTHER
+    )
+
+
+@router.post(REIMBURSEMENTS_URL + "/{reimbursement_id}")
+async def update_reimbursement_form(
+    request: Request, session: SessionDep, reimbursement_id: int
+) -> Response:
+    reimbursement = await get_reimbursement(session, reimbursement_id)
+    transaction_id = reimbursement.transaction_id
+    values = _reimbursement_values(await request.form())
+
+    try:
+        payload = ReimbursementUpdate(**values)
+    except ValidationError as exc:
+        return await _render_detail(
+            request,
+            session,
+            transaction_id,
+            errors=field_errors(exc),
+            status_code=422,
+        )
+
+    try:
+        await update_reimbursement(session, reimbursement_id, payload)
+    except SpendTrackerError as exc:
+        return await _render_detail(
+            request,
+            session,
+            transaction_id,
+            errors={"status": exc.message},
+            status_code=exc.status_code,
+        )
+
+    await session.commit()
+    return RedirectResponse(
+        f"{TRANSACTIONS_URL}/{transaction_id}", status_code=HTTP_303_SEE_OTHER
+    )
+
+
+@router.post(REIMBURSEMENTS_URL + "/{reimbursement_id}/delete")
+async def delete_reimbursement_form(
+    session: SessionDep, reimbursement_id: int
+) -> RedirectResponse:
+    reimbursement = await get_reimbursement(session, reimbursement_id)
+    transaction_id = reimbursement.transaction_id
+
+    await delete_reimbursement(session, reimbursement_id)
+    await session.commit()
+    return RedirectResponse(
+        f"{TRANSACTIONS_URL}/{transaction_id}", status_code=HTTP_303_SEE_OTHER
+    )

@@ -1,0 +1,189 @@
+{% extends "base.html" %} {% block title %}{{ txn.merchant }}{% endblock %} {%
+block content %}
+<div class="page-head">
+  <h1>{{ txn.merchant }}</h1>
+  <a class="back" href="/transactions?month={{ txn.txn_date.strftime('%Y-%m') }}"
+    >Back</a
+  >
+</div>
+
+<div class="card detail">
+  <dl class="detail-grid">
+    <dt>Date</dt>
+    <dd>{{ txn.txn_date.strftime('%d %b %Y') }}</dd>
+    <dt>Category</dt>
+    <dd>
+      {{ txn.category }}{% if txn.subcategory %}
+      <span class="muted">/ {{ txn.subcategory }}</span>{% endif %}
+    </dd>
+    <dt>Card</dt>
+    <dd>{{ txn.payment_method.name }}</dd>
+    {% if txn.notes %}
+    <dt>Notes</dt>
+    <dd>{{ txn.notes }}</dd>
+    {% endif %} {% if txn.is_subscription %}
+    <dt>Type</dt>
+    <dd><span class="tag">subscription</span></dd>
+    {% endif %}
+  </dl>
+
+  <div class="totals">
+    <div>
+      <span class="totals-label">Gross</span>
+      <span class="amount">${{ "%.2f"|format(txn.amount_cents / 100) }}</span>
+    </div>
+    <div>
+      <span class="totals-label">Received</span>
+      <span class="amount">${{ "%.2f"|format(received_cents / 100) }}</span>
+    </div>
+    <div>
+      <span class="totals-label">Net</span>
+      <span class="amount net">${{ "%.2f"|format(net_cents / 100) }}</span>
+    </div>
+  </div>
+  {% if received_cents > txn.amount_cents %}
+  <p class="hint">
+    Received more than the transaction. Net floors at zero, so the difference is
+    not counted as income.
+  </p>
+  {% endif %}
+
+  <div class="form-actions">
+    <a class="button button-secondary" href="/transactions/{{ txn.id }}/edit"
+      >Edit transaction</a
+    >
+  </div>
+</div>
+
+<h2 class="section-head">Reimbursements</h2>
+
+{% if reimbursements %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th class="amount">Amount</th>
+        <th>Status</th>
+        <th>Received</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in reimbursements %}
+      <tr{% if item.status.value == 'cancelled' %} class="muted-row"{% endif %}>
+        <td>{{ item.source.value }}</td>
+        <td class="amount">${{ "%.2f"|format(item.amount_cents / 100) }}</td>
+        <td>
+          {% if item.status.value == 'received' %}
+          <span class="status status-ok">received</span>
+          {% else %}
+          <span class="status">{{ item.status.value }}</span>
+          {% endif %}
+        </td>
+        <td class="muted">
+          {{ item.received_date.strftime('%d %b %Y') if item.received_date else
+          '-' }}
+        </td>
+        <td>
+          <div class="row-actions">
+            {% if item.status.value == 'expected' %}
+            <form method="post" action="/reimbursements/{{ item.id }}" class="inline-form">
+              <input type="hidden" name="status" value="received" />
+              <input
+                type="date"
+                name="received_date"
+                required
+                aria-label="Date received"
+              />
+              <button type="submit" class="link-button">Mark received</button>
+            </form>
+            {% endif %}
+            <form
+              method="post"
+              action="/reimbursements/{{ item.id }}/delete"
+              onsubmit="return confirm('Delete this reimbursement?')"
+            >
+              <button type="submit" class="link-button danger">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="empty">None recorded.</p>
+{% endif %}
+
+<form
+  method="post"
+  action="/transactions/{{ txn.id }}/reimbursements"
+  class="card"
+>
+  <div class="field-row">
+    <div>
+      <label for="source">Source</label>
+      <select id="source" name="source" required>
+        {% for source in sources %}
+        <option value="{{ source.value }}" {% if values.get('source') ==
+        source.value %}selected{% endif %}>{{ source.value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="amount">Amount</label>
+      <input
+        id="amount"
+        name="amount"
+        type="number"
+        step="0.01"
+        min="0.01"
+        inputmode="decimal"
+        required
+        value="{{ values.get('amount') or '' }}"
+      />
+      {% if errors.get('amount_cents') %}<p class="error">
+        {{ errors['amount_cents'] }}
+      </p>{% endif %}
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div>
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        {% for state in statuses %}
+        <option value="{{ state.value }}" {% if values.get('status') ==
+        state.value %}selected{% endif %}>{{ state.value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="received_date"
+        >Received <span class="hint">required if received</span></label
+      >
+      <input
+        id="received_date"
+        name="received_date"
+        type="date"
+        value="{{ values.get('received_date') or '' }}"
+      />
+    </div>
+  </div>
+  {% if errors.get('status') %}<p class="error">{{ errors['status'] }}</p>{%
+  endif %} {% if errors.get('received_date') %}<p class="error">
+    {{ errors['received_date'] }}
+  </p>{% endif %}
+
+  <label for="notes">Notes <span class="hint">optional</span></label>
+  <textarea id="notes" name="notes" rows="2">
+{{ values.get('notes') or '' }}</textarea
+  >
+
+  <div class="form-actions">
+    <button type="submit" class="button">Add reimbursement</button>
+  </div>
+</form>
+{% endblock %}

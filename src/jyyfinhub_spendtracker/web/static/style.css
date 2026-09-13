@@ -404,3 +404,54 @@ tfoot td {
   border-color: var(--accent);
   text-decoration: none;
 }
+
+/* transaction detail */
+.section-head {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0 0 1.25rem;
+}
+.detail-grid dt {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.detail-grid dd {
+  margin: 0;
+}
+.totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+.totals-label {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.totals .amount {
+  font-size: 1.15rem;
+  text-align: left;
+}
+.totals .net {
+  color: var(--ok);
+}
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.inline-form input[type="date"] {
+  width: auto;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
