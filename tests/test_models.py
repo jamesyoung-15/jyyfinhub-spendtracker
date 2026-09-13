@@ -3,6 +3,7 @@ from jyyfinhub_spendtracker.db.registry import Base
 EXPECTED_TABLES = {
     "payment_methods",
     "transactions",
+    "transaction_templates",
 }
 
 
