@@ -8,6 +8,8 @@ says otherwise under **Upgrade notes**.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-18
+
 ### Added
 
 - Spend by category on the summary page, showing gross and net per category sorted by net
@@ -55,5 +57,6 @@ First release, and the version the real transaction history was first entered ag
   by `Enum(create_constraint=True)` and dropped it on every run.
 - Dates use the configured `TZ` rather than UTC, so an evening entry is no longer dated tomorrow.
 
-[Unreleased]: https://github.com/jamesyoung-15/jyyfinhub-spendtracker/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jamesyoung-15/jyyfinhub-spendtracker/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jamesyoung-15/jyyfinhub-spendtracker/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jamesyoung-15/jyyfinhub-spendtracker/releases/tag/v0.1.0
