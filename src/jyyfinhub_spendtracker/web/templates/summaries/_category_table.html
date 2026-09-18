@@ -1,0 +1,55 @@
+{# Category breakdown, shared by the month and year sections. Expects `rows`.
+
+   Subcategory rows only appear when a category actually uses them, so a flat category like
+   Groceries does not grow a pointless child row repeating its own total. #}
+{% if rows %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th class="amount">Gross</th>
+        <th class="amount">Net</th>
+        <th class="amount">Count</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.category }}</td>
+        <td class="amount muted">${{ "%.2f"|format(row.gross_cents / 100) }}</td>
+        <td class="amount net">${{ "%.2f"|format(row.net_cents / 100) }}</td>
+        <td class="amount muted">{{ row.transaction_count }}</td>
+      </tr>
+      {% if row.subcategories | selectattr('subcategory') | list %} {% for sub in
+      row.subcategories %}
+      <tr class="sub-row">
+        <td>
+          {% if sub.subcategory %}{{ sub.subcategory }}{% else %}<span
+            class="muted"
+            >Unspecified</span
+          >{% endif %}
+        </td>
+        <td class="amount muted">${{ "%.2f"|format(sub.gross_cents / 100) }}</td>
+        <td class="amount">${{ "%.2f"|format(sub.net_cents / 100) }}</td>
+        <td class="amount muted">{{ sub.transaction_count }}</td>
+      </tr>
+      {% endfor %} {% endif %} {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <td>Total</td>
+        <td class="amount">
+          ${{ "%.2f"|format(rows|sum(attribute='gross_cents') / 100) }}
+        </td>
+        <td class="amount">
+          ${{ "%.2f"|format(rows|sum(attribute='net_cents') / 100) }}
+        </td>
+        <td class="amount">{{ rows|sum(attribute='transaction_count') }}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% else %}
+<p class="empty">Nothing recorded.</p>
+{% endif %}

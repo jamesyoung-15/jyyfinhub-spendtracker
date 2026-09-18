@@ -64,6 +64,10 @@
   </p>
 </div>
 
+<h2 class="section-head">Where it went</h2>
+{% with rows = categories %}{% include "summaries/_category_table.html" %}{%
+endwith %}
+
 <h2 class="section-head">Budget goal</h2>
 <form method="post" action="/summary/{{ month }}/goal" class="card">
   <label for="goal">Goal for {{ month_label }}</label>
@@ -149,4 +153,11 @@
     </tbody>
   </table>
 </div>
-{% endif %} {% endblock %}
+{% endif %}
+
+<details class="year-breakdown">
+  <summary>Where it went in {{ year }}</summary>
+  {% with rows = yearly_categories %}{% include
+  "summaries/_category_table.html" %}{% endwith %}
+</details>
+{% endblock %}

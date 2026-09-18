@@ -12,8 +12,10 @@ from jyyfinhub_spendtracker.deps import SessionDep
 from jyyfinhub_spendtracker.goals.schemas import MonthlyBudgetGoalUpsert
 from jyyfinhub_spendtracker.goals.service import upsert_goal
 from jyyfinhub_spendtracker.summaries.service import (
+    monthly_categories,
     monthly_summaries_for_year,
     monthly_summary,
+    yearly_categories,
     yearly_summary,
 )
 from jyyfinhub_spendtracker.web.forms import clean, field_errors, parse_amount
@@ -46,7 +48,9 @@ async def _render(
             "month": month.strftime("%Y-%m"),
             "month_label": month.strftime("%B %Y"),
             "year": month.year,
+            "categories": await monthly_categories(session, month),
             "yearly": await yearly_summary(session, month.year),
+            "yearly_categories": await yearly_categories(session, month.year),
             "months": await monthly_summaries_for_year(session, month.year),
             "errors": errors or {},
         },
