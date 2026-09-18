@@ -4,6 +4,7 @@ Aggregated in SQL rather than by loading rows. `Transaction.net_cents` applies t
 one transaction, but summing a year of objects in Python would load every row.
 """
 
+from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
@@ -13,7 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from jyyfinhub_spendtracker.goals.models import MonthlyBudgetGoal
 from jyyfinhub_spendtracker.goals.service import list_goals_for_year, month_start_of
-from jyyfinhub_spendtracker.summaries.schemas import MonthlySummary, YearlySummary
+from jyyfinhub_spendtracker.summaries.schemas import (
+    CategoryBreakdown,
+    MonthlySummary,
+    SubcategoryBreakdown,
+    YearlySummary,
+)
 from jyyfinhub_spendtracker.transactions.models import (
     Reimbursement,
     ReimbursementStatus,
@@ -120,6 +126,74 @@ async def monthly_summaries_for_year(
         _to_monthly(month, by_month.get(month, empty), goals.get(month))
         for month in months
     ]
+
+
+async def _breakdown_between(
+    session: AsyncSession, start: date, end: date
+) -> Sequence[CategoryBreakdown]:
+    """Spend per category for a half-open range, each with its subcategories.
+
+    Grouped by the pair in SQL and rolled up to the category in Python. One query covers both
+    levels, and the row count is bounded by how many pairs exist rather than by transactions.
+    """
+    stmt = (
+        _base_query()
+        .add_columns(Transaction.category, Transaction.subcategory)
+        .where(Transaction.txn_date >= start, Transaction.txn_date < end)
+        .group_by(Transaction.category, Transaction.subcategory)
+    )
+    rows = (await session.execute(stmt)).all()
+
+    children: dict[str, list[SubcategoryBreakdown]] = defaultdict(list)
+    totals: dict[str, Totals] = defaultdict(lambda: Totals(0, 0, 0, 0))
+    for row in rows:
+        children[row.category].append(
+            SubcategoryBreakdown(
+                subcategory=row.subcategory,
+                transaction_count=row[0],
+                gross_cents=row[1],
+                received_cents=row[2],
+                net_cents=row[3],
+            )
+        )
+        running = totals[row.category]
+        totals[row.category] = Totals(
+            running.transaction_count + row[0],
+            running.gross_cents + row[1],
+            running.received_cents + row[2],
+            running.net_cents + row[3],
+        )
+
+    breakdown = [
+        CategoryBreakdown(
+            category=category,
+            transaction_count=total.transaction_count,
+            gross_cents=total.gross_cents,
+            received_cents=total.received_cents,
+            net_cents=total.net_cents,
+            subcategories=sorted(children[category], key=lambda sub: -sub.net_cents),
+        )
+        for category, total in totals.items()
+    ]
+    # biggest spend first, since that is what the table is read for
+    breakdown.sort(key=lambda row: -row.net_cents)
+    return breakdown
+
+
+async def monthly_categories(
+    session: AsyncSession, month: date
+) -> Sequence[CategoryBreakdown]:
+    """Category breakdown for the month `month` falls in."""
+    start, end = month_bounds(month_start_of(month))
+    return await _breakdown_between(session, start, end)
+
+
+async def yearly_categories(
+    session: AsyncSession, year: int
+) -> Sequence[CategoryBreakdown]:
+    """Category breakdown for a whole year, same shape as the monthly one."""
+    start, end = year_bounds(year)
+    return await _breakdown_between(session, start, end)
 
 
 async def yearly_summary(session: AsyncSession, year: int) -> YearlySummary:

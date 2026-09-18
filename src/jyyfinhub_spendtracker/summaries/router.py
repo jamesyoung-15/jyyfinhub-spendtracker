@@ -5,10 +5,16 @@ from typing import Annotated
 from fastapi import APIRouter, Path
 
 from jyyfinhub_spendtracker.deps import SessionDep
-from jyyfinhub_spendtracker.summaries.schemas import MonthlySummary, YearlySummary
+from jyyfinhub_spendtracker.summaries.schemas import (
+    CategoryBreakdown,
+    MonthlySummary,
+    YearlySummary,
+)
 from jyyfinhub_spendtracker.summaries.service import (
+    monthly_categories,
     monthly_summaries_for_year,
     monthly_summary,
+    yearly_categories,
     yearly_summary,
 )
 
@@ -34,3 +40,17 @@ async def read_months_in_year(
     session: SessionDep, year: int
 ) -> Sequence[MonthlySummary]:
     return await monthly_summaries_for_year(session, year)
+
+
+@router.get("/monthly/{month}/categories", response_model=list[CategoryBreakdown])
+async def read_monthly_categories(
+    session: SessionDep, month: MonthPath
+) -> Sequence[CategoryBreakdown]:
+    return await monthly_categories(session, date.fromisoformat(f"{month}-01"))
+
+
+@router.get("/yearly/{year}/categories", response_model=list[CategoryBreakdown])
+async def read_yearly_categories(
+    session: SessionDep, year: int
+) -> Sequence[CategoryBreakdown]:
+    return await yearly_categories(session, year)
