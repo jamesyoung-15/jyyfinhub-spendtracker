@@ -33,7 +33,7 @@ jyyfinhub-spendtracker/
 │   ├── db/                      # base.py, session.py, registry.py
 │   ├── transactions/            # + Reimbursement, splits
 │   ├── transaction_templates/
-│   ├── payment_methods/         # + seed.py
+│   ├── payment_methods/
 │   ├── goals/
 │   ├── summaries/               # no models, reads the others
 │   └── web/                     # one module per page group, templates/, static/
@@ -48,7 +48,7 @@ jyyfinhub-spendtracker/
 
 Everything is organised by feature, with each feature package sitting at the package root. A feature
 package normally holds `models.py`, `schemas.py`, `service.py`, `router.py` and `exceptions.py`,
-though some vary: `summaries/` has no models and `payment_methods/` adds `seed.py`.
+though some vary, as `summaries/` has no models of its own.
 
 ## Package rules
 
@@ -80,6 +80,9 @@ Tables and relationships are in [Schema](./schema.md).
 - Nothing lazy loads under async. Relationships are declared `lazy="raise"` and loaded eagerly with
   `selectinload()`, and sessions use `expire_on_commit=False`.
 - `Base.metadata` carries a `naming_convention` so every constraint can be dropped by name.
+- `summaries/service.py::_base_query` builds the reimbursement join and the per-transaction clamp
+  once, and everything else adds columns and a `GROUP BY` on top of it. That is why the monthly
+  totals, the month by month table and the category breakdown can never disagree with each other.
 - Enum columns use `sa.Enum(..., native_enum=False, create_constraint=False)` alongside an explicit
   `CheckConstraint` in `__table_args__`. Alembic cannot see a constraint that the `Enum` type
   generated for it, so `create_constraint=True` produces a diff that comes back on every
@@ -123,6 +126,8 @@ These all cost real debugging time.
   keep that honest.
 - The theme is dark only, with CSS custom properties at the top of `static/style.css`.
 - Icons are inlined with `{% include %}` so they inherit `currentColor`.
+- Long secondary sections use a `<details>` element rather than JS, as the yearly category breakdown
+  on the summary page does.
 
 ## Testing
 

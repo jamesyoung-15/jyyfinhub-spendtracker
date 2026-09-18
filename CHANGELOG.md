@@ -8,6 +8,14 @@ says otherwise under **Upgrade notes**.
 
 ## [Unreleased]
 
+### Added
+
+- Spend by category on the summary page, showing gross and net per category sorted by net
+  descending, with a total row. Categories that use subcategories list them underneath.
+- The same breakdown for the whole year, in a collapsed section at the bottom of the page.
+- `GET /api/v1/summaries/monthly/{month}/categories` and
+  `GET /api/v1/summaries/yearly/{year}/categories`.
+
 ## [0.1.0] - 2026-09-13
 
 First release, and the version the real transaction history was first entered against.
