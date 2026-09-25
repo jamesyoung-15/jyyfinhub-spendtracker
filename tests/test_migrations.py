@@ -171,3 +171,48 @@ def test_data_survives_the_latest_migration(
         engine.dispose()
 
     assert row == ("Star Market", 4235, card_id)
+
+
+def test_subscriptions_rows_are_recategorised(
+    alembic_config: Config, migration_url: str
+) -> None:
+    """The data migration must actually move rows, not just parse.
+
+    Seeded at the revision before head, where Subscriptions was still a valid category.
+    """
+    command.upgrade(alembic_config, "49c2b29272c5")
+
+    engine = sa.create_engine(migration_url)
+    try:
+        with engine.begin() as conn:
+            card_id = conn.execute(
+                sa.text(
+                    "INSERT INTO payment_methods (name, kind) VALUES ('Amex Gold', 'credit')"
+                    " RETURNING id"
+                )
+            ).scalar_one()
+            conn.execute(
+                sa.text(
+                    "INSERT INTO transactions"
+                    " (txn_date, merchant, category, subcategory, amount_cents, payment_method_id)"
+                    " VALUES (:day, 'Leetcode', 'Subscriptions', 'Productivity', 1000, :card)"
+                ),
+                {"day": date(2026, 9, 3), "card": card_id},
+            )
+
+        command.upgrade(alembic_config, "head")
+
+        with engine.connect() as conn:
+            row = conn.execute(
+                sa.text("SELECT category, subcategory FROM transactions")
+            ).one()
+            stranded = conn.execute(
+                sa.text(
+                    "SELECT count(*) FROM transactions WHERE category = 'Subscriptions'"
+                )
+            ).scalar_one()
+    finally:
+        engine.dispose()
+
+    assert row == ("Education", "Self Study")
+    assert stranded == 0

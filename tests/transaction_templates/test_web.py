@@ -12,8 +12,8 @@ def _form(payment_method: PaymentMethod, **overrides: object) -> dict[str, objec
     defaults: dict[str, object] = {
         "name": "Amazon Prime",
         "merchant": "Amazon",
-        "category": "Subscriptions",
-        "subcategory": "Entertainment",
+        "category": "Lifestyle",
+        "subcategory": "Household",
         "amount": "14.99",
         "payment_method_id": str(payment_method.id),
         "notes": "",
@@ -95,7 +95,7 @@ async def test_template_prefills_entry_form(
     assert form.status_code == 200
     assert 'value="Amazon"' in form.text
     assert 'value="14.99"' in form.text
-    assert 'value="Subscriptions" selected' in form.text
+    assert 'value="Lifestyle" selected' in form.text
 
 
 async def test_variable_template_leaves_amount_blank(

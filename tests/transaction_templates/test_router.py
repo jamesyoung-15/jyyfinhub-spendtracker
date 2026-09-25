@@ -9,8 +9,8 @@ def _body(payment_method: PaymentMethod, **overrides: object) -> dict[str, objec
     defaults: dict[str, object] = {
         "name": "Amazon Prime",
         "merchant": "Amazon",
-        "category": "Subscriptions",
-        "subcategory": "Entertainment",
+        "category": "Lifestyle",
+        "subcategory": "Household",
         "amount_cents": 1499,
         "payment_method_id": payment_method.id,
         "is_subscription": True,

@@ -6,8 +6,8 @@ from jyyfinhub_spendtracker.core.exceptions import ValidationError
 SPEND_CATEGORIES: dict[str, tuple[str, ...]] = {
     "Housing": ("Rent", "Electricity", "Insurance"),
     "Utility": ("Internet", "Phone"),
-    "Subscriptions": ("Productivity", "Entertainment", "Gaming"),
     "Tech": ("Hardware", "Cloud", "Software"),
+    "Education": ("Tuition", "Self Study"),
     "Groceries": (),
     "Restaurants": ("Fast Food", "Dining", "Cafe"),
     "Transit": (),
