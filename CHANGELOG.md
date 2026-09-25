@@ -8,6 +8,20 @@ says otherwise under **Upgrade notes**.
 
 ## [Unreleased]
 
+### Changed
+
+- Retired the `Subscriptions` category. It overlapped with the subscription checkbox, which already
+  records that a charge recurs on any category, so recurring spend no longer gets pulled out of
+  `Housing`, `Utility` and `Leisure`.
+- Added an `Education` category with `Tuition` and `Self Study`, covering tuition, online courses
+  and practice subscriptions.
+
+### Upgrade notes
+
+- The migration recategorises existing rows in both `transactions` and `transaction_templates`, and
+  runs automatically on container start. It is intentionally not reversible: `downgrade()` is a
+  no-op, because reversing would sweep up rows that never belonged to `Subscriptions`.
+
 ## [0.2.0] - 2026-09-18
 
 ### Added
