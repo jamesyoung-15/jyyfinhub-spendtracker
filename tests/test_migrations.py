@@ -6,6 +6,7 @@ show up anywhere else. These run alembic for real against a throwaway database.
 
 from collections.abc import Iterator
 from datetime import date
+from enum import StrEnum
 from pathlib import Path
 
 import pytest
@@ -18,6 +19,11 @@ from sqlalchemy import make_url
 
 from alembic import command
 from jyyfinhub_spendtracker.db.registry import Base
+from jyyfinhub_spendtracker.payment_methods.models import PaymentMethodKind
+from jyyfinhub_spendtracker.transactions.models import (
+    ReimbursementSource,
+    ReimbursementStatus,
+)
 from tests.conftest import TEST_DB_URL
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -216,3 +222,44 @@ def test_subscriptions_rows_are_recategorised(
 
     assert row == ("Education", "Self Study")
     assert stranded == 0
+
+
+@pytest.mark.parametrize(
+    ("enum", "constraint"),
+    [
+        (PaymentMethodKind, "ck_payment_methods_kind_valid"),
+        (ReimbursementSource, "ck_reimbursements_source_valid"),
+        (ReimbursementStatus, "ck_reimbursements_status_valid"),
+    ],
+)
+def test_enum_values_reach_the_database(
+    alembic_config: Config,
+    migration_url: str,
+    enum: type[StrEnum],
+    constraint: str,
+) -> None:
+    """Every enum member must be allowed by the CHECK the migrations actually built.
+
+    Autogenerate does not compare CHECK constraints, so adding a member produces no diff and
+    `alembic check` stays quiet. Without this the first insert of the new value fails in prod.
+    The rest of the suite cannot catch it either, since conftest builds the schema from the models
+    rather than from migrations.
+    """
+    command.upgrade(alembic_config, "head")
+
+    engine = sa.create_engine(migration_url)
+    try:
+        with engine.connect() as conn:
+            definition = conn.execute(
+                sa.text(
+                    "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = :name"
+                ),
+                {"name": constraint},
+            ).scalar_one()
+    finally:
+        engine.dispose()
+
+    missing = [member.value for member in enum if f"'{member.value}'" not in definition]
+    assert not missing, (
+        f"{constraint} does not allow {missing}, so a migration is missing"
+    )

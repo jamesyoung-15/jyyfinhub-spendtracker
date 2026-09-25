@@ -98,6 +98,10 @@ These all cost real debugging time.
 - Append to a relationship rather than setting the foreign key when the parent might already be
   loaded. Setting `transaction_id` directly leaves the parent's collection stale for the rest of the
   session, and the identity map then hands that stale object to the next query.
+- Autogenerate does not compare `CHECK` constraints, so adding a value to a `StrEnum` produces no
+  diff and `alembic check` stays quiet. The migration has to be hand written, and
+  `test_enum_values_reach_the_database` is what catches a forgotten one. The rest of the suite
+  cannot, because `conftest.py` builds the schema from the models rather than from migrations.
 - A form normaliser that always writes a key defeats `exclude_unset`. A partial form has to omit the
   fields it did not carry, otherwise an absent field arrives as an explicit null and wipes whatever
   was stored.
