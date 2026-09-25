@@ -21,6 +21,8 @@ class ReimbursementSource(StrEnum):
 
     COMPANY = "Company"
     FAMILY = "Family"
+    FRIEND = "Friend"
+    REWARDS = "Rewards"
     REFUND = "Refund"
     OTHER = "Other"
 
