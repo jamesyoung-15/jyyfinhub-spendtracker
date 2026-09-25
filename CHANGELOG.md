@@ -16,6 +16,11 @@ says otherwise under **Upgrade notes**.
 - Added an `Education` category with `Tuition` and `Self Study`, covering tuition, online courses
   and practice subscriptions.
 
+### Added
+
+- `Friend` and `Rewards` as reimbursement sources, for splitting with people who are not family and
+  for card points or gift cards offsetting a purchase.
+
 ### Upgrade notes
 
 - The migration recategorises existing rows in both `transactions` and `transaction_templates`, and

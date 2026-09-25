@@ -19,9 +19,7 @@ does not always describe what was actually bought. Some examples include:
   the next eleven look cheap. I enter it as a monthly share across the months it actually covers
   and flag those rows with `is_subscription`, so each month carries its real cost.
 
-Before this I entered transactions into a spreadsheet, first Proton Sheets then LibreOffice Calc.
-That worked, but repeat transactions were slow to type. Templates and proper HTML form inputs fix
-that, which is why entry speed is treated as a hard requirement rather than a nice-to-have.
+Before this I entered transactions into a spreadsheet with Proton Sheets. This kind of worked, but repeat transactions were slow to type. Also Proton Sheets dates were a pain in the ass, even though I'm in America, I don't use MM-DD-YYYY, I fucking hate that shit, yet Proton Sheets kept auto-correcting applying the format on my dates column. This project helps me speed up filling transactions and gives me control to do things "my way".
 
 ## What it does
 
@@ -65,6 +63,7 @@ Ideas that were considered and dropped, kept here so they do not get re-proposed
 
 - [Architecture](./architecture.md) - stack, repo layout, package rules, conventions, testing
 - [Schema](./schema.md) - ER diagram and the constraints behind it
+- [Filing rules](./rules/README.md) - which category a transaction goes in, and when to tick the subscription box
 - [Deployment](./deployment.md) - containers, compose, migrations, configuration
 
 ## LLM Usage
