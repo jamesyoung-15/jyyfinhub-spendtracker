@@ -1,0 +1,82 @@
+{% extends "base.html" %} {% block title %}Edit reimbursement{% endblock %} {%
+block content %}
+<div class="page-head">
+  <h1>Edit reimbursement</h1>
+  <a class="back" href="/transactions/{{ transaction.id }}">Back</a>
+</div>
+
+<p class="hint">
+  Against {{ transaction.merchant }} on {{
+  transaction.txn_date.strftime('%d %b %Y') }}, ${{
+  "%.2f"|format(transaction.amount_cents / 100) }}
+</p>
+
+<form method="post" action="{{ action }}" class="card">
+  <div class="field-row">
+    <div>
+      <label for="source">Source</label>
+      <select id="source" name="source" required>
+        {% for source in sources %}
+        <option value="{{ source.value }}" {% if values.get('source') ==
+        source.value %}selected{% endif %}>{{ source.value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="amount">Amount</label>
+      <input
+        id="amount"
+        name="amount"
+        type="number"
+        step="0.01"
+        min="0.01"
+        inputmode="decimal"
+        required
+        value="{{ values.get('amount') or '' }}"
+      />
+      {% if errors.get('amount_cents') %}<p class="error">
+        {{ errors['amount_cents'] }}
+      </p>{% endif %}
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div>
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        {% for state in statuses %}
+        <option value="{{ state.value }}" {% if values.get('status') ==
+        state.value %}selected{% endif %}>{{ state.value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="received_date"
+        >Received <span class="hint">required if received</span></label
+      >
+      <input
+        id="received_date"
+        name="received_date"
+        type="date"
+        value="{{ values.get('received_date') or '' }}"
+      />
+    </div>
+  </div>
+  {% if errors.get('status') %}<p class="error">{{ errors['status'] }}</p>{%
+  endif %} {% if errors.get('received_date') %}<p class="error">
+    {{ errors['received_date'] }}
+  </p>{% endif %}
+
+  <label for="notes">Notes <span class="hint">optional</span></label>
+  <textarea id="notes" name="notes" rows="2">
+{{ values.get('notes') or '' }}</textarea
+  >
+
+  <div class="form-actions">
+    <button type="submit" class="button">Save</button>
+    <a class="button button-secondary" href="/transactions/{{ transaction.id }}"
+      >Cancel</a
+    >
+  </div>
+</form>
+{% endblock %}

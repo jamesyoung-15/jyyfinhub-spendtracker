@@ -20,6 +20,15 @@ says otherwise under **Upgrade notes**.
 
 - `Friend` and `Rewards` as reimbursement sources, for splitting with people who are not family and
   for card points or gift cards offsetting a purchase.
+- An edit page for reimbursements. Previously the detail page only offered an inline mark-received,
+  so a wrong amount, source or note could only be fixed by deleting the row and retyping it.
+
+### Fixed
+
+- Reimbursement notes are now shown on the transaction detail page. They were stored and editable
+  but never rendered anywhere.
+- The transaction edit page now links back to the transaction, alongside the existing split
+  shortcut. Reimbursements live on the detail page, so editing had no way through to them.
 
 ### Upgrade notes
 

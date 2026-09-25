@@ -22,6 +22,7 @@ from jyyfinhub_spendtracker.transaction_templates.service import (
 from jyyfinhub_spendtracker.transactions.models import (
     ReimbursementSource,
     ReimbursementStatus,
+    Transaction,
 )
 from jyyfinhub_spendtracker.transactions.schemas import (
     ReimbursementCreate,
@@ -79,6 +80,9 @@ async def _render_form(
     action: str,
     heading: str,
     presets: Sequence[TransactionTemplate] = (),
+    links: Sequence[tuple[str, str]] = (
+        (f"{TRANSACTIONS_URL}/split", "Split an order"),
+    ),
     status_code: int = 200,
 ) -> HTMLResponse:
     return templates.TemplateResponse(
@@ -93,6 +97,7 @@ async def _render_form(
             "payment_methods": await list_payment_methods(session),
             "merchants": await recent_merchants(session),
             "presets": presets,
+            "links": links,
         },
         status_code=status_code,
     )
@@ -207,6 +212,10 @@ async def edit_transaction_page(
         errors={},
         action=f"{TRANSACTIONS_URL}/{transaction_id}",
         heading="Edit transaction",
+        links=(
+            (f"{TRANSACTIONS_URL}/{transaction_id}", "View transaction"),
+            (f"{TRANSACTIONS_URL}/split", "Split an order"),
+        ),
     )
 
 
@@ -227,6 +236,10 @@ async def update_transaction_form(
             errors=field_errors(exc),
             action=action,
             heading="Edit transaction",
+            links=(
+                (action, "View transaction"),
+                (f"{TRANSACTIONS_URL}/split", "Split an order"),
+            ),
             status_code=422,
         )
 
@@ -240,6 +253,10 @@ async def update_transaction_form(
             errors={"category": exc.message},
             action=action,
             heading="Edit transaction",
+            links=(
+                (action, "View transaction"),
+                (f"{TRANSACTIONS_URL}/split", "Split an order"),
+            ),
             status_code=exc.status_code,
         )
 
@@ -349,6 +366,88 @@ async def add_reimbursement_form(
             values=values,
             status_code=exc.status_code,
         )
+
+    await session.commit()
+    return RedirectResponse(
+        f"{TRANSACTIONS_URL}/{transaction_id}", status_code=HTTP_303_SEE_OTHER
+    )
+
+
+def _render_reimbursement_form(
+    request: Request,
+    reimbursement_id: int,
+    transaction: Transaction,
+    values: dict[str, Any],
+    errors: dict[str, str],
+    status_code: int = 200,
+) -> HTMLResponse:
+    return templates.TemplateResponse(
+        request,
+        "transactions/reimbursement_form.html",
+        {
+            "action": f"{REIMBURSEMENTS_URL}/{reimbursement_id}/edit",
+            "transaction": transaction,
+            "values": values,
+            "errors": errors,
+            "sources": list(ReimbursementSource),
+            "statuses": list(ReimbursementStatus),
+        },
+        status_code=status_code,
+    )
+
+
+@router.get(
+    REIMBURSEMENTS_URL + "/{reimbursement_id}/edit", response_class=HTMLResponse
+)
+async def edit_reimbursement_page(
+    request: Request, session: SessionDep, reimbursement_id: int
+) -> HTMLResponse:
+    """Full edit, unlike the inline mark-received on the detail page."""
+    reimbursement = await get_reimbursement(session, reimbursement_id)
+    return _render_reimbursement_form(
+        request,
+        reimbursement_id,
+        await get_transaction(session, reimbursement.transaction_id),
+        values={
+            "source": reimbursement.source.value,
+            "amount": f"{reimbursement.amount_cents / 100:.2f}",
+            "status": reimbursement.status.value,
+            "received_date": reimbursement.received_date,
+            "notes": reimbursement.notes,
+        },
+        errors={},
+    )
+
+
+@router.post(REIMBURSEMENTS_URL + "/{reimbursement_id}/edit")
+async def save_reimbursement_form(
+    request: Request, session: SessionDep, reimbursement_id: int
+) -> Response:
+    """Separate from the inline update so a failure re-renders this form, keeping what was typed."""
+    reimbursement = await get_reimbursement(session, reimbursement_id)
+    transaction_id = reimbursement.transaction_id
+    form = await request.form()
+    values = _reimbursement_values(form)
+
+    async def rerender(errors: dict[str, str], status_code: int) -> HTMLResponse:
+        return _render_reimbursement_form(
+            request,
+            reimbursement_id,
+            await get_transaction(session, transaction_id),
+            values=dict(form),
+            errors=errors,
+            status_code=status_code,
+        )
+
+    try:
+        payload = ReimbursementUpdate(**values)
+    except ValidationError as exc:
+        return await rerender(field_errors(exc), 422)
+
+    try:
+        await update_reimbursement(session, reimbursement_id, payload)
+    except SpendTrackerError as exc:
+        return await rerender({"status": exc.message}, exc.status_code)
 
     await session.commit()
     return RedirectResponse(

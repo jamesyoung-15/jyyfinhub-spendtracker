@@ -4,7 +4,11 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from jyyfinhub_spendtracker.payment_methods.models import PaymentMethod
-from jyyfinhub_spendtracker.transactions.service import list_transactions
+from jyyfinhub_spendtracker.transactions.schemas import TransactionCreate
+from jyyfinhub_spendtracker.transactions.service import (
+    create_transaction,
+    list_transactions,
+)
 
 PAGE = "/transactions"
 
@@ -131,3 +135,30 @@ async def test_delete(
     response = await client.post(f"{PAGE}/{transaction_id}/delete")
     assert response.status_code == 303
     assert await list_transactions(session) == []
+
+
+async def test_new_form_links_to_split(client: AsyncClient) -> None:
+    page = await client.get("/transactions/new")
+    assert 'href="/transactions/split"' in page.text
+
+
+async def test_edit_form_links_to_the_transaction(
+    client: AsyncClient, session: AsyncSession, payment_method: PaymentMethod
+) -> None:
+    """Reimbursements live on the detail page, so editing needs a way back to it."""
+    txn = await create_transaction(
+        session,
+        TransactionCreate(
+            txn_date=date(2026, 9, 3),
+            merchant="Star Market",
+            category="Groceries",
+            amount_cents=4235,
+            payment_method_id=payment_method.id,
+        ),
+    )
+
+    page = await client.get(f"/transactions/{txn.id}/edit")
+    assert f'href="/transactions/{txn.id}"' in page.text
+    assert "View transaction" in page.text
+    # the split shortcut stays available too, the head holds several links
+    assert 'href="/transactions/split"' in page.text

@@ -106,8 +106,19 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1.25rem;
+}
+/* shortcuts get their own row: crowding them against the heading reads badly at every width */
+.page-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+.page-head:has(+ .page-links) {
+  margin-bottom: 0.9rem;
 }
 h1 {
   font-size: 1.4rem;

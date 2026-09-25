@@ -104,6 +104,7 @@ block content %}
         <th class="amount">Amount</th>
         <th>Status</th>
         <th>Received</th>
+        <th>Notes</th>
         <th></th>
       </tr>
     </thead>
@@ -123,6 +124,7 @@ block content %}
           {{ item.received_date.strftime('%d %b %Y') if item.received_date else
           '-' }}
         </td>
+        <td class="notes">{{ item.notes or '-' }}</td>
         <td>
           <div class="row-actions">
             {% if item.status.value == 'expected' %}
@@ -137,6 +139,7 @@ block content %}
               <button type="submit" class="link-button">Mark received</button>
             </form>
             {% endif %}
+            <a href="/reimbursements/{{ item.id }}/edit">Edit</a>
             <form
               method="post"
               action="/reimbursements/{{ item.id }}/delete"
