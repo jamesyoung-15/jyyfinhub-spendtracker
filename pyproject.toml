@@ -1,6 +1,6 @@
 [project]
 name = "jyyfinhub-spendtracker"
-version = "0.2.0"
+version = "0.3.0"
 description = "Personal spend tracking application."
 readme = "README.md"
 requires-python = ">=3.13"
